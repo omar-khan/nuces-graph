@@ -38,12 +38,15 @@ void nGraphFree(struct nGraph *G)
 
 void nGraphInit(struct nGraph *G, char *t)
 {
+	G->directed = 0;
 	G->V = calloc(1,sizeof(struct verList));//malloc(sizeof(struct verList));
 	G->V->count = 0;
 	G->E = calloc(1,sizeof(struct edgList));//malloc(sizeof(struct edgList));
 	G->E->count = 0;
 	G->label = calloc(10,sizeof(char));//malloc(sizeof(char)*10);
 	strcpy(G->label, t);
+	G->V->degree_histogram_in  = NULL;
+	G->V->degree_histogram_out = NULL;
 }
 
 /**
@@ -98,6 +101,50 @@ int searchVertex(struct nGraph *G, int search)
 		tmp = tmp->next;
 	}
 	return 0;
+}
+
+void updateVertexDegree(struct nGraph *G, int vertex_from, int vertex_to, int directed)
+{
+	struct vertex *tmp;
+	if (directed == 0) {
+		tmp = G->V->head;
+		while (tmp != NULL) {
+			if (tmp->label == vertex_from) {
+				tmp->degree_in++;
+				tmp->degree_out++;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	
+		tmp = G->V->head;
+		while (tmp != NULL) {
+			if (tmp->label == vertex_to) {
+				tmp->degree_in++;
+				tmp->degree_out++;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	} else {
+		tmp = G->V->head;
+		while (tmp != NULL) {
+			if (tmp->label == vertex_from) {
+				tmp->degree_in++;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	
+		tmp = G->V->head;
+		while (tmp != NULL) {
+			if (tmp->label == vertex_to) {
+				tmp->degree_out++;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	}
 }
 
 /** 
@@ -258,6 +305,7 @@ void addRandomEdge(struct nGraph *G, int weight)
 {
 	struct edge *tmp = malloc(sizeof(struct edge));
 	tmp->weight = weight;
+	tmp->directed = 0;
 	int randomHead = rand() % G->V->count;
 	int randomTail = rand() % G->V->count;
 	while (randomTail == randomHead) {
@@ -265,6 +313,7 @@ void addRandomEdge(struct nGraph *G, int weight)
 	}
 	tmp->head   = randomHead;
 	tmp->tail   = randomTail;
+
 
 	if (!edgeExists(G, tmp->head, tmp->tail)) {
 		if (G->E->count == 0) {
@@ -277,6 +326,7 @@ void addRandomEdge(struct nGraph *G, int weight)
 			G->E->tail       = tmp;
 			G->E->count++;
 		}
+		updateVertexDegree(G, tmp->head, tmp->tail, tmp->directed);
 	}
 }
 
@@ -322,6 +372,10 @@ void addEdgeDirected(struct nGraph *G, int head, int tail, int weight)
 			tmp->next     = NULL;
 			tmp->prev     = G->E->count == 0 ? NULL : G->E->tail;
 	
+			G->directed   = 1;
+
+			updateVertexDegree(G, head, tail, tmp->directed);
+
 			if (G->E->count == 0) {
 				G->E->head = tmp;
 				G->E->tail = tmp;
@@ -355,6 +409,8 @@ void addEdge(struct nGraph *G, int head, int tail, int weight)
 			tmp->directed = 0;
 			tmp->next     = NULL;
 			tmp->prev     = G->E->count == 0 ? NULL : G->E->tail;
+
+			updateVertexDegree(G, head, tail, tmp->directed);
 	
 			if (G->E->count == 0) {
 				G->E->head = tmp;
@@ -440,10 +496,12 @@ void addVertex(struct nGraph *G, int c)
 {
 	if (!searchVertex(G, c)) {
 		struct vertex *tmp = malloc(sizeof(struct vertex));
-		tmp->label = c;
-		tmp->lblString = NULL;
-		tmp->color = -1;
+		tmp->label        = c;
+		tmp->lblString    = NULL;
+		tmp->color        = -1;
 		tmp->eccentricity = 0;
+		tmp->degree_in    = 0;
+		tmp->degree_out   = 0;
 		tmp->prev = G->V->tail;
 		tmp->next = NULL;
 
@@ -651,4 +709,59 @@ void removeVertex(struct nGraph *P, int c)
 	}
 }
 
+/**
+ * Prints the histogram of vertex degrees in a graph. Both in-degree and
+ * out-degree are determined and printed.
+ * @param G Graph object
+ */
 
+void degreeHistogram(struct nGraph *G)
+{
+	int min_in_degree = 1000, min_out_degree = 1000;
+	int max_in_degree = 0,    max_out_degree = 0;
+
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->degree_in  > max_in_degree)   max_in_degree  = tmp->degree_in;
+		if (tmp->degree_in  <= min_in_degree)  min_in_degree  = tmp->degree_in;
+		if (tmp->degree_out > max_out_degree)  max_out_degree = tmp->degree_out;
+		if (tmp->degree_out <= min_out_degree) min_out_degree = tmp->degree_out;
+
+		tmp = tmp->next;
+	}
+
+	int range_in  = max_in_degree  - min_in_degree  + 1;
+	int range_out = max_out_degree - min_out_degree + 1;
+
+	G->V->degree_histogram_in  = malloc(sizeof(int*)*(unsigned int)range_in);
+	G->V->degree_histogram_out = malloc(sizeof(int*)*(unsigned int)range_out);
+	int i;
+	for (i = 0; i < range_in; i++) {
+		G->V->degree_histogram_in[i] = malloc(sizeof(int)*2);
+		G->V->degree_histogram_in[i][0] = i+min_in_degree;
+		G->V->degree_histogram_in[i][1] = 0;
+	}
+	for (i = 0; i < range_out; i++) {
+		G->V->degree_histogram_out[i] = malloc(sizeof(int)*2);
+		G->V->degree_histogram_out[i][0] = i+min_out_degree;
+		G->V->degree_histogram_out[i][1] = 0;
+	}
+
+	tmp = G->V->head;
+	while(tmp != NULL) {
+		G->V->degree_histogram_in[tmp->degree_in - min_in_degree][1]++;
+		G->V->degree_histogram_out[tmp->degree_out - min_out_degree][1]++;
+
+		tmp = tmp->next;
+	}
+	printf("Degree In\n");
+	for (i = 0; i < range_in; i++) {
+		printf("%d : %d\n", G->V->degree_histogram_in[i][0], 
+				                G->V->degree_histogram_in[i][1]);
+	}
+	printf("Degree Out\n");
+	for (i = 0; i < range_out; i++) {
+		printf("%d : %d\n", G->V->degree_histogram_out[i][0],
+												G->V->degree_histogram_out[i][1]);
+	}
+}

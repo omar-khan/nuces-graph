@@ -16,6 +16,8 @@ struct vertex
 	char *lblString;
 	int color;
 	int eccentricity;
+	int degree_in;
+	int degree_out;
 	struct vertex *next;
 	struct vertex *prev;
 };
@@ -34,7 +36,10 @@ struct verList
 {
 	int count;
 	struct vertex *head;
-	struct vertex *tail; 
+	struct vertex *tail;
+
+	int **degree_histogram_in;
+	int **degree_histogram_out;
 };
 
 struct edgList
@@ -49,6 +54,7 @@ struct nGraph
 	char *label;
 	struct verList *V;
 	struct edgList *E;
+	int directed;
 };
 
 struct nGraph newGraph(char *);
@@ -107,4 +113,5 @@ struct nGraph newStar(char *, int);
 void makePath(struct nGraph *, int);
 void nGraphFree(struct nGraph *);
 void printCombinations(struct nGraph, int, int, int);
+void degreeHistogram(struct nGraph *);
 #endif
