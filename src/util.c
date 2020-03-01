@@ -1,0 +1,654 @@
+#include <string.h>
+#include <math.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "nucesGraph.h"
+
+const char *colors[20] = { "red", "green", "skyblue", "yellow", "white", "pink", "darkseagreen1", "magenta", "khaki", "grey", "gold", "orange", "aquamarine", "darkgreen", "deeppink", "greenyellow", "peachpuff", "slateblue", "turquoise", "violet"};
+const int colornumbers[20] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19};
+
+/**
+ * Frees Allocated Memory gracefully by first removing all vertex nodes, then
+ * edge nodes, and then freeing their lists.
+ * @param G Graph object
+ */
+
+void nGraphFree(struct nGraph *G) 
+{
+	while (G->V->count != 0) {
+		removeVertexPopLast(G);
+	}
+	
+	while(G->E->count != 0) {
+		removeEdgePopLast(G);
+	}
+
+	free(G->V);
+	free(G->E);
+	free(G->label);
+}
+
+/** 
+ * Initializes internal pointers of a Graph object that has already been
+ * created. Also sets various internal counters to zero.
+ * @param G Graph object G=(V,E)
+ * @param t Label to assign to the Graph (maximum 10 characters)
+ */
+
+void nGraphInit(struct nGraph *G, char *t)
+{
+	G->V = calloc(1,sizeof(struct verList));//malloc(sizeof(struct verList));
+	G->V->count = 0;
+	G->E = calloc(1,sizeof(struct edgList));//malloc(sizeof(struct edgList));
+	G->E->count = 0;
+	G->label = calloc(10,sizeof(char));//malloc(sizeof(char)*10);
+	strcpy(G->label, t);
+}
+
+/**
+ * Creates a new (Empty) Graph and calls relevant routines to initialize its
+ * internal pointers.
+ * @param c Label of the Graph
+ * @return Graph Object
+ */
+
+struct nGraph newGraph(char *c)
+{
+	struct nGraph result;
+	nGraphInit(&result, c);
+	return result;
+}
+
+/**
+ * Helper function for addVertexDuplicateOk() that counts the number of times a vertex appears in a list. For most algorithms, duplicate vertices are not supported and if run on any graph, it will return a 1. If used with addVertexDuplicateOK(), it can possibly return a count > 1. Function added to support finding of multinomial coefficients.
+ * @param G Graph object
+ * @param search Integer label of Vertex to search
+ * @return Count of number of vertices found
+ */
+
+int searchVertexCount(struct nGraph *G, int search) 
+{
+	struct vertex *tmp = G->V->head;
+	int count = 0;
+	while (tmp != NULL) {
+		if (tmp->label == search) {
+			count++;
+		}
+		tmp = tmp->next;
+	}
+	return count;
+}
+
+/** 
+ * Find a particular vertex in a graph.
+ * @param G Graph object
+ * @param search Vertex to search for
+ * @return Not found = 0, Found = 1
+ */
+
+int searchVertex(struct nGraph *G, int search) 
+{	
+	if (G->V->count == 0) return 0;
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->label == search) {
+			return 1;
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
+/** 
+ * Get the assigned color (flag) of a given vertex
+ * @param G Graph object
+ * @param search Vertex to search
+ * @return Color as Integer, or -1 if not found
+ */
+
+int getVertexColor(struct nGraph *G, int search) 
+{	
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->label == search) {
+			return tmp->color;
+		}
+		tmp = tmp->next;
+	}
+	return -1;
+}
+
+/** 
+ * Each vertex is internally identified as an integer number. However, a label
+ * for the vertex can also be specified. This searches for a given vertex by
+ * it's label.
+ * @param G Graph object
+ * @param c Vertex label
+ * @return Found = 1, Not Found = 0
+ */
+
+int searchVertexLabel(struct nGraph *G, char *c) 
+{
+	if (G->V->count == 0) return 0;
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->lblString != NULL) {
+			if (strcmp(tmp->lblString, c) == 0) {
+				return 1;
+			}	
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
+void copyVertexLabel(struct nGraph *G, int c, char *thelabel)
+{
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->label == c && tmp->lblString != NULL) {
+			strcpy(thelabel, tmp->lblString);
+			break;
+		}
+	}
+}
+
+int getVertexLabel(struct nGraph *G, char *search)
+{
+	struct vertex *tmp = G->V->head;
+	int count = 0; 
+	while (tmp != NULL) {
+		if (strcmp(tmp->lblString, search) == 0) {
+			return count;
+		}
+		tmp = tmp->next;
+		count++;
+	}
+	return 0;
+}
+
+int getVertex(struct nGraph *G, int search) 
+{
+	struct vertex *tmp = G->V->head;
+	int count = 0; 
+	while (tmp != NULL) {
+		if (tmp->label == search) {
+			return count;
+		}
+		tmp = tmp->next;
+		count++;
+	}
+	return 0;
+}
+
+int getEdgeWeight(struct nGraph *G, int head, int tail) 
+{
+	struct edge *tmp = G->E->head;
+	while (tmp != NULL) {
+		if (tmp->directed == 0) {
+			if (((tmp->head == head && tmp->tail == tail) || 
+			     (tmp->head == head && tmp->tail == head)) ||
+			    ((tmp->head == tail && tmp->tail == tail) ||
+			 	 (tmp->head == tail && tmp->tail == head))) {
+				return tmp->weight;
+			}
+		} else {
+			if (tmp->head == head && tmp->tail == tail) {
+				return tmp->weight;
+			}
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
+/** 
+ * Search whether a given directed edge exists in a graph. Edges are specified as
+ * head-tail pairs and must be specified in order.
+ * @param G Graph object
+ * @param head First incident vertex on edge
+ * @param tail Second incident vertex on edge
+ * @return Not Found = 0, Found = 1
+ */
+int directedEdgeExists(struct nGraph *G, int head, int tail) 
+{
+	struct edge *tmp = malloc(sizeof(struct edge));
+	tmp = G->E->head;
+	while (tmp != NULL) {
+		if (tmp->head == head && tmp->tail == tail) {
+			return 1;
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
+/** 
+ * Search whether a given edge exists in a graph. Edges are specified as
+ * head-tail pairs. Order is irrelevant.
+ * @param G Graph object
+ * @param head First incident vertex on edge
+ * @param tail Second incident vertex on edge
+ * @return Not Found = 0, Found = 1
+ */
+int edgeExists(struct nGraph *G, int head, int tail) 
+{
+	struct edge *tmp = malloc(sizeof(struct edge));
+	tmp = G->E->head;
+	while (tmp != NULL) {
+		if (((tmp->head == head && tmp->tail == tail) || 
+		     (tmp->head == head && tmp->tail == head)) ||
+		    ((tmp->head == tail && tmp->tail == tail) ||
+		 	 (tmp->head == tail && tmp->tail == head))) {
+			return 1;
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
+/**
+ * Add any random edge (uniform distribution) of a certain weight
+ * @param G Graph object
+ * @param weight Weight of the edge
+ */
+
+void addRandomEdge(struct nGraph *G, int weight)
+{
+	struct edge *tmp = malloc(sizeof(struct edge));
+	tmp->weight = weight;
+	int randomHead = rand() % G->V->count;
+	int randomTail = rand() % G->V->count;
+	while (randomTail == randomHead) {
+		randomTail = rand() % G->V->count;
+	}
+	tmp->head   = randomHead;
+	tmp->tail   = randomTail;
+
+	if (!edgeExists(G, tmp->head, tmp->tail)) {
+		if (G->E->count == 0) {
+			G->E->head = tmp;
+			G->E->tail = tmp;
+			G->E->count++;
+		}
+		else {
+			G->E->tail->next = tmp;
+			G->E->tail       = tmp;
+			G->E->count++;
+		}
+	}
+}
+
+void addEdgeLabel(struct nGraph *G, char *head, char *tail, int weight)
+{
+	if (strcmp(head, tail) != 0) {
+		int h, t;
+		if (!searchVertexLabel(G, head)) {
+			printf("invalid vertex %s in edge %s->%s\n", head, head, tail);
+			return;
+		} 
+		else {
+			h = getVertexLabel(G, head);
+		}
+		if (!searchVertexLabel(G, tail)) {
+			printf("invalid vertex %s in edge %s->%s\n", tail, head, tail);
+			return; 
+		}
+		else {
+			t = getVertexLabel(G, tail);
+		}
+		addEdge(G, h, t, weight);
+	}
+}
+
+void addEdgeDirected(struct nGraph *G, int head, int tail, int weight)
+{
+	if (head != tail) {
+		if (!searchVertex(G, head)) {
+			printf("invalid vertex %d in edge %d->%d\n", head, head, tail);
+			return;
+		}
+		if (!searchVertex(G, tail)) {
+			printf("invalid vertex %d in edge %d->%d\n", tail, head, tail);
+			return; 
+		}
+		if (!directedEdgeExists(G, head, tail)) {
+			struct edge *tmp = malloc(sizeof(struct edge));
+			tmp->weight   = weight;
+			tmp->head     = head;
+			tmp->directed = 1;
+			tmp->tail     = tail;
+			tmp->next     = NULL;
+			tmp->prev     = G->E->count == 0 ? NULL : G->E->tail;
+	
+			if (G->E->count == 0) {
+				G->E->head = tmp;
+				G->E->tail = tmp;
+				G->E->count++;
+			}
+			else {
+				G->E->tail->next = tmp;
+				G->E->tail       = tmp;
+				G->E->count++;
+			}
+		}
+	}
+}
+
+void addEdge(struct nGraph *G, int head, int tail, int weight)
+{
+	if (head != tail) {
+		if (!searchVertex(G, head)) {
+			printf("invalid vertex %d in edge %d->%d\n", head, head, tail);
+			return;
+		}
+		if (!searchVertex(G, tail)) {
+			printf("invalid vertex %d in edge %d->%d\n", tail, head, tail);
+			return; 
+		}
+		if (!edgeExists(G, head, tail)) {
+			struct edge *tmp = malloc(sizeof(struct edge));
+			tmp->weight   = weight;
+			tmp->head     = head;
+			tmp->tail     = tail;
+			tmp->directed = 0;
+			tmp->next     = NULL;
+			tmp->prev     = G->E->count == 0 ? NULL : G->E->tail;
+	
+			if (G->E->count == 0) {
+				G->E->head = tmp;
+				G->E->tail = tmp;
+				G->E->count++;
+			}
+			else {
+				G->E->tail->next = tmp;
+				G->E->tail       = tmp;
+				G->E->count++;
+			}
+		}
+	}
+}
+
+void copyGraphDuplicateOK(struct nGraph *dest, struct nGraph *src)
+{
+	struct vertex *tmp = src->V->head;
+	while(tmp != NULL) {
+		addVertexDuplicateOK(dest, tmp->label);
+		tmp = tmp->next;
+	}
+	struct edge *tmpE = src->E->head;
+	while(tmpE != NULL) {
+		if (tmpE->directed == 0) {
+			addEdge(dest, tmpE->head, tmpE->tail, tmpE->weight);
+		} else {
+			addEdgeDirected(dest, tmpE->head, tmpE->tail, tmpE->weight);
+		}
+		tmpE = tmpE->next;
+	}
+}
+
+void copyGraph(struct nGraph *dest, struct nGraph *src)
+{
+	struct vertex *tmp = src->V->head;
+	while(tmp != NULL) {
+		addVertex(dest, tmp->label);
+		tmp = tmp->next;
+	}
+	struct edge *tmpE = src->E->head;
+	while(tmpE != NULL) {
+		if (tmpE->directed == 0) {
+			addEdge(dest, tmpE->head, tmpE->tail, tmpE->weight);
+		} else {
+			addEdgeDirected(dest, tmpE->head, tmpE->tail, tmpE->weight);
+		}
+		tmpE = tmpE->next;
+	}
+}
+
+void addVertexDuplicateOK(struct nGraph *G, int c)
+{
+	struct vertex *tmp = malloc(sizeof(struct vertex));
+	tmp->label = c;
+	tmp->eccentricity = 0;
+	tmp->color = -1;
+	tmp->prev = G->V->tail;
+
+	if (G->V->count == 0) {
+		G->V->head = tmp;
+		G->V->tail = tmp;
+		G->V->count++;
+	}
+	else {
+		G->V->tail->next = tmp;
+		G->V->tail       = tmp;
+		G->V->count++;	
+	}
+}
+
+void addVertexLabel(struct nGraph *G, char *c)
+{
+	if (!searchVertexLabel(G, c)) {
+		// Vertex not found
+		int currentVertices = G->V->count; 
+		addVertex(G, currentVertices);
+		setVertexLabel(G, currentVertices, c);
+	} 
+}
+
+void addVertex(struct nGraph *G, int c)
+{
+	if (!searchVertex(G, c)) {
+		struct vertex *tmp = malloc(sizeof(struct vertex));
+		tmp->label = c;
+		tmp->lblString = NULL;
+		tmp->color = -1;
+		tmp->eccentricity = 0;
+		tmp->prev = G->V->tail;
+		tmp->next = NULL;
+
+		if (G->V->count == 0) {
+			G->V->head = tmp;
+			G->V->tail = tmp;
+			G->V->count++;
+		}
+		else {
+			G->V->tail->next = tmp;
+			G->V->tail       = tmp;
+			G->V->count++;	
+		}
+	}
+}
+
+void setVertexLabel(struct nGraph *G, int search, char *c)
+{
+	struct vertex *tmp = G->V->head;
+	while (tmp != NULL) {
+		if (tmp->label == search) {
+			tmp->lblString = malloc(sizeof(char)*strlen(c));
+			strcpy(tmp->lblString, c);
+		}
+		tmp = tmp->next;
+	}
+}
+
+void copyVertices(struct nGraph *src, struct nGraph *dest)
+{
+	struct vertex *tmp = src->V->head;
+	while(tmp != NULL) {
+		//if (!searchVertex(dest, tmp->label)) {
+			addVertex(dest, tmp->label);
+		//}
+		tmp = tmp->next;
+	}
+	free(tmp);
+}
+
+struct nGraph getVertices(struct nGraph *src)
+{
+	struct nGraph result;
+	nGraphInit(&result, "P");
+	copyVertices(src, &result);
+	return result;
+}
+
+void placeNeighbours(struct nGraph *G, int label, struct nGraph *result)
+{
+	//if (result == NULL) nGraphInit(result, "n");
+	/*else { 
+		nGraphFree(result);
+		nGraphInit(result, "n");
+	}*/
+
+	struct edge *tmpE = G->E->head;
+	while(tmpE != NULL) {
+		if (tmpE->head == label) {
+			if (!searchVertex(result, tmpE->tail)) {
+				addVertex(result, tmpE->tail);
+			}
+		}
+		if (tmpE->tail == label) {
+			if (!searchVertex(result, tmpE->head)) {
+				addVertex(result, tmpE->head);
+			}
+		}
+		tmpE = tmpE->next;
+	}
+	free(tmpE);
+}
+
+struct nGraph getNeighbours(struct nGraph *G, int label)
+{
+	struct nGraph result = newGraph("n");
+
+	struct edge *tmpE = G->E->head;
+	while(tmpE != NULL) {
+		if (tmpE->head == label) {
+			if (!searchVertex(&result, tmpE->tail)) {
+				addVertex(&result, tmpE->tail);
+			}
+		}
+		if (tmpE->tail == label) {
+			if (!searchVertex(&result, tmpE->head)) {
+				addVertex(&result, tmpE->head);
+			}
+		}
+		tmpE = tmpE->next;
+	}
+	free(tmpE);
+	return result;
+}
+
+void removeEdge(struct nGraph *P, int c, int d)
+{
+	struct edge *tmp = P->E->head;
+	struct edge *pre = tmp;
+
+	while(tmp != NULL) {
+		if ((tmp->head == c && tmp->tail == d) || (tmp->head == d && tmp->tail == c)) {
+			if (pre == P->E->head) { // first link
+				pre = tmp->next;
+				P->E->head = pre;
+				printf("%d-%d\n", tmp->head, tmp->tail);
+			} else {
+				pre->next = tmp->next;
+			}
+			P->E->count--;
+			tmp = tmp->next;
+		}
+		else {
+			pre = tmp;
+			tmp = tmp->next;
+		}
+	}
+}
+
+void removeEdges(struct nGraph *P, int c)
+{
+	struct edge *tmp = P->E->head;
+	struct edge *pre = tmp;
+
+	while(tmp != NULL) {
+		if (tmp->head == c || tmp->tail == c) {
+			if (pre == P->E->head) { // first link
+				pre = tmp->next;
+				P->E->head = pre;
+				printf("%d-%d\n", tmp->head, tmp->tail);
+			} else {
+				pre->next = tmp->next;
+			}
+			P->E->count--;
+			tmp = tmp->next;
+		}
+		else {
+			pre = tmp;
+			tmp = tmp->next;
+		}
+	}
+}
+
+void removeEdgePopLast(struct nGraph *P)
+{
+	if (P->E->count == 1) {
+		struct edge *tmp = P->E->tail;
+		P->E->tail = NULL;
+		free(tmp);
+		P->E->count--;
+	}
+	else {
+		struct edge *tmp = P->E->tail;
+		P->E->tail = tmp->prev;
+		P->E->tail->next = NULL;
+		free(tmp);
+		P->E->count--;
+	}
+}
+
+void removeVertexPopLast(struct nGraph *P)
+{
+	if (P->V->count == 1) {
+		struct vertex *tmp = P->V->tail;
+		P->V->tail = NULL;
+		free(tmp);
+		P->V->count--;
+	}
+	else {
+		struct vertex *tmp = P->V->tail;
+		P->V->tail = tmp->prev;
+		P->V->tail->next = NULL;
+		free(tmp);
+		P->V->count--;
+	}
+}
+
+void removeVertex(struct nGraph *P, int c)
+{
+	struct vertex *tmp = P->V->head;
+	struct vertex *pre;
+
+	if (P->V->head->label == c) {
+		P->V->head = P->V->head->next;
+		P->V->count--;
+		removeEdges(P, c);
+		free(tmp);
+	}
+	else {
+		pre = tmp;
+		tmp = tmp->next;
+		while(tmp != NULL) {
+			if (tmp->label == c) {
+				pre->next = tmp->next;
+				P->V->count--;
+				removeEdges(P, c);
+				free(tmp);
+				break;
+			}
+			else {
+				pre = tmp;
+				tmp = tmp->next;
+			}
+		}
+	}
+}
+
+
