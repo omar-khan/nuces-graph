@@ -69,63 +69,73 @@ typedef struct nGraph
 	int *incidence_matrix;
 } nGraph;
 
+// Basic Signatures
 struct nGraph newGraph(char *);
 void nGraphInit(struct nGraph *, char *);
 void addVertex(struct nGraph *, int);
 void addVertexLabel(struct nGraph *, char *);
 void copyVertexLabel(struct nGraph *, int, char *);
 void addVertexDuplicateOK(struct nGraph *, int);
-void show(struct nGraph *);
-void addEdge(struct nGraph *, int, int, int);
-void addEdgeDirected(struct nGraph *, int, int, int);
 void addEdgeLabel(struct nGraph *, char *, char *, int);
+void addEdgeDirected(struct nGraph *, int, int, int);
+void addEdge(struct nGraph *, int, int, int);
+void addRandomEdge(struct nGraph *, int);
+void removeVertex(struct nGraph *, int);
+void removeVertexPopLast(struct nGraph *);
+void removeEdgePopLast(struct nGraph *);
+void copyGraphDuplicateOK(struct nGraph *, struct nGraph *);
+void copyGraph(struct nGraph *, struct nGraph *);
+void copyVertices(struct nGraph *, struct nGraph *);
+void nGraphFree(struct nGraph *);
+void adjacencyMatrix(struct nGraph *);
+void incidenceMatrix(struct nGraph *);
+
+// Display related
+void show(struct nGraph *);
 void showDot(struct nGraph *);
 void exportDot(struct nGraph *);
 void showDimac(struct nGraph *);
 void exportDimac(struct nGraph *);
 void makeDimac(struct nGraph *, char *);
-int getVertexColor(struct nGraph *, int);
-int searchVertex(struct nGraph *, int);
-int searchVertexLabel(struct nGraph *, char *);
-int eccentricity(struct nGraph *, int);
-int edgeExists(struct nGraph *, int, int);
-int shortestPathLength(struct nGraph *, int, int);
-int getEdgeWeight(struct nGraph *, int, int);
-int graphRadius(struct nGraph *);
-int graphDiameter(struct nGraph *);
-struct nGraph getVertices(struct nGraph *);
-struct nGraph newRandomTree(char *, int);
-void printPermutations(struct nGraph);
-void listAllTrees(struct nGraph *, int);
-void addRandomEdge(struct nGraph *, int);
-void BronKerbosch(struct nGraph, struct nGraph, struct nGraph, struct nGraph);
-void removeVertex(struct nGraph *, int);
-void removeVertexPopLast(struct nGraph *);
-void removeEdgePopLast(struct nGraph *);
 void listVerticesAlphabet(struct nGraph *);
 void listVertices(struct nGraph *);
 void listEdges(struct nGraph *);
-void copyGraphDuplicateOK(struct nGraph *, struct nGraph *);
-void copyGraph(struct nGraph *, struct nGraph *);
-void copyVertices(struct nGraph *, struct nGraph *);
+
+// Search 
+int searchVertexLabel(struct nGraph *, char *);
+int searchVertex(struct nGraph *, int);
+int edgeExists(struct nGraph *, int, int);
 int searchVertexCount(struct nGraph *, int);
 void setVertexLabel(struct nGraph *, int, char *);
-struct nGraph newCompleteGraph(char *, int);
+
+// Metrics and parameters 
+int getVertexColor(struct nGraph *, int);
+int eccentricity(struct nGraph *, int);
+int getEdgeWeight(struct nGraph *, int, int);
+int graphRadius(struct nGraph *);
+int graphDiameter(struct nGraph *);
 struct nGraph graphCenter(struct nGraph *);
-struct nGraph gUnion(struct nGraph *, struct nGraph *);
-struct nGraph gIntersection(struct nGraph *, struct nGraph *);
+void degreeHistogram(struct nGraph *);
+
+// Algorithms
+int shortestPathLength(struct nGraph *, int, int);
+void BronKerbosch(struct nGraph, struct nGraph, struct nGraph, struct nGraph);
+
+// Subsets
+struct nGraph getVertices(struct nGraph *);
 struct nGraph getNeighbours(struct nGraph *, int);
 void placeNeighbours(struct nGraph *, int, struct nGraph *);
-struct nGraph newCenterGraph(struct nGraph *);
-struct nGraph gRingSum(struct nGraph *, struct nGraph *);
-struct nGraph crossProduct(struct nGraph *, struct nGraph *);
-struct nGraph gUnionVertex(struct nGraph *, int);
+
+// Generate
+struct nGraph newRandomTree(char *, int);
+struct nGraph newCompleteGraph(char *, int);
 struct nGraph newPath(char *, int);
 struct nGraph newStar(char *, int);
-void makePath(struct nGraph *, int);
-void nGraphFree(struct nGraph *);
-void printCombinations(struct nGraph, int, int, int);
-void degreeHistogram(struct nGraph *);
-void adjacencyMatrix(struct nGraph *);
-void incidenceMatrix(struct nGraph *);
+
+// Binary operations
+struct nGraph gUnion(struct nGraph *, struct nGraph *);
+struct nGraph gRingSum(struct nGraph *, struct nGraph *);
+struct nGraph gIntersection(struct nGraph *, struct nGraph *);
+struct nGraph crossProduct(struct nGraph *, struct nGraph *);
+struct nGraph gUnionVertex(struct nGraph *, int);
 #endif
