@@ -153,7 +153,7 @@ void showDot(struct nGraph *B)
 	// convert to dot
 	pid_t pid = fork();
 	if (pid == 0) {
-		printf("Source at: %s\nImage at: %s\nBoth will remain until window is closed\n", filename, fileimage);
+		printf("Source (dot) at: %s\nImage  (pdf) at: %s\n\n", filename, fileimage);
 		execl("/usr/bin/neato", "/usr/bin/neato", filename, "-T", "pdf", "-o", fileimage, NULL);
 		printf("i should not be printed\n");
 	}
@@ -168,10 +168,10 @@ void showDot(struct nGraph *B)
 		printf("i should not be printed\n");
 	}
 	else if (pid > 0) {
-		wait(NULL);
+		//wait(NULL);
 	}
-	unlink(filename);
-	unlink(fileimage);
+	//unlink(filename);
+	//unlink(fileimage);
 }
 
 void show(struct nGraph *B)
@@ -202,7 +202,7 @@ void listVerticesAlphabet(struct nGraph *G)
 void listVertices(struct nGraph *G)
 {
 	struct vertex *tmp = G->V->head;
-	printf("%s.V(%d) = { ", G->label, G->V->count);
+	printf("%s%s.V(%d) = { ", KRED, G->label, G->V->count);
 	int count = 0; 
 	while(tmp != NULL && G->V->count > 0) {
 		if (tmp->lblString != NULL && strlen(tmp->lblString) > 0) {
@@ -215,13 +215,13 @@ void listVertices(struct nGraph *G)
 		tmp = tmp->next;
 		count++;
 	}
-	printf("}\n");
+	printf("}\n%s", KWHT);
 }
 
 void listEdges(struct nGraph *G)
 {
 	struct edge *tmp = G->E->head;
-	printf("%s.E(%d) = { ", G->label, G->E->count);
+	printf("%s%s.E(%d) = { ", KRED, G->label, G->E->count);
 	int count = 0; 
 	while (tmp != NULL && G->E->count > 0) {
 		if (count == (G->E->count-1)) {
@@ -233,7 +233,7 @@ void listEdges(struct nGraph *G)
 		tmp = tmp->next;
 		count++;
 	}
-	printf("}\n\n");
+	printf("}\n%s\n", KWHT);
 }
 
 

@@ -1,22 +1,23 @@
 #include "nucesGraph.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
-	struct nGraph G = newGraph("G");
+	nGraph G = newGraph("G");
 
 	int i;
-	for (i = 0; i < 20; i++) 
+	for (i = 0; i < 5; i++) 
 		addVertex(&G, i);
 	
-	addVertexLabel(&G, "hello");
-
-	for (i = 0; i < 800; i++) 
-		addRandomEdge(&G, 0);
+	for (i = 0; i < 5; i++) 
+		addRandomEdge(&G, 1);
 
 	show(&G);
 	showDot(&G);
 
 	degreeHistogram(&G);
+	adjacencyMatrix(&G);
+	incidenceMatrix(&G);
 
 	return 0;
 }

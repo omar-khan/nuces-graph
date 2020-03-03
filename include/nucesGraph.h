@@ -7,6 +7,14 @@
 #ifndef NUCESGRAPH_H
 #define NUCESGRAPH_H
 
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
 extern const char *colors[20];
 extern const int  colornumbers[20];
 
@@ -24,6 +32,7 @@ struct vertex
 
 struct edge 
 {
+	int label;
 	int weight;
 	int head;
 	int tail;
@@ -49,13 +58,16 @@ struct edgList
 	struct edge *tail;
 };
 
-struct nGraph
+typedef struct nGraph
 {
 	char *label;
 	struct verList *V;
 	struct edgList *E;
 	int directed;
-};
+
+	int *adjacency_matrix;
+	int *incidence_matrix;
+} nGraph;
 
 struct nGraph newGraph(char *);
 void nGraphInit(struct nGraph *, char *);
@@ -114,4 +126,6 @@ void makePath(struct nGraph *, int);
 void nGraphFree(struct nGraph *);
 void printCombinations(struct nGraph, int, int, int);
 void degreeHistogram(struct nGraph *);
+void adjacencyMatrix(struct nGraph *);
+void incidenceMatrix(struct nGraph *);
 #endif
