@@ -178,21 +178,30 @@ void listAllTrees(struct nGraph *G, int vertices)
 	printCombinations(T, power, start, vertices);
 }
 
-void makeRandomTree(struct nGraph *G, int vertices)
+/**
+ * Constructs a random tree.
+ * @param C Label for the tree
+ * @param V Number of vertices required in the tree
+ * @return Graph object
+ */
+
+struct nGraph newRandomTree(char *C, int V)
 {
+	struct nGraph tmp = newGraph(c);
+	
 	struct nGraph Done    = newGraph("D");
 	struct nGraph NotDone = newGraph("N");
 
 	int i;
-	for (i = 0; i < vertices; i++) {
+	for (i = 0; i < V; i++) {
 		addVertex(&NotDone, i);
 	}
 
 	srand(time(0));
-	int randomHead = rand() % vertices;
-	int randomTail = rand() % vertices;
+	int randomHead = rand() % V;
+	int randomTail = rand() % V;
 	while (randomTail == randomHead) {
-		randomTail = rand() % vertices;
+		randomTail = rand() % V;
 	}
 	addVertex(&Done, randomHead);
 	addVertex(&Done, randomTail);
@@ -201,16 +210,16 @@ void makeRandomTree(struct nGraph *G, int vertices)
 	removeVertex(&NotDone, randomHead);
 	removeVertex(&NotDone, randomTail);
 
-	while (Done.V->count != vertices) {
+	while (Done.V->count != V) {
 		
-		randomHead = rand() % vertices;
+		randomHead = rand() % V;
 		while (!searchVertex(&Done, randomHead)) {
-			randomHead = rand() % vertices;
+			randomHead = rand() % V;
 		}
 		
-		randomTail = rand() % vertices;
+		randomTail = rand() % V;
 		while (!searchVertex(&NotDone, randomTail)) {
-			randomTail = rand() % vertices;
+			randomTail = rand() % V;
 		}
 
 		addVertex(&Done, randomTail);
@@ -218,7 +227,9 @@ void makeRandomTree(struct nGraph *G, int vertices)
 		removeVertex(&NotDone, randomTail);
 	}
 
-	copyGraph(G, &Done);
+	copyGraph(&tmp, &Done);
+
+	return tmp;
 }
 
 /**

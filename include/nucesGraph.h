@@ -94,7 +94,7 @@ int getEdgeWeight(struct nGraph *, int, int);
 int graphRadius(struct nGraph *);
 int graphDiameter(struct nGraph *);
 struct nGraph getVertices(struct nGraph *);
-void makeRandomTree(struct nGraph *, int);
+struct nGraph newRandomTree(char *, int);
 void printPermutations(struct nGraph);
 void listAllTrees(struct nGraph *, int);
 void addRandomEdge(struct nGraph *, int);
