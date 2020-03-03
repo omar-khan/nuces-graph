@@ -10,23 +10,36 @@ Sciences (NUCES), Peshawar, Pakistan*.
 Example usage for the library is given below:
 
 ```c
-nGraph G = newGraph("G");
+#include <nucesGraph.h>
 
-int i;
-for (i = 0; i < 5; i++)
-	addVertex(&G, i);            // creates five vertices
+int main(int argc, char **argv)
+{
+    int i, def_weight = 1;
 
-for (i = 0; i < 5; i++)
-	addRandomEdge(&G, 1);        // adds five random edges, each of weight 1
+    nGraph G = newGraph("G");
 
-addEdge(&G, 0, 1, 1);          // manual edge b/w vertices 0 and 1, of weight 1
+    for (i = 0; i < 5; i++) {
+        addVertex(&G, i);
+    }
+
+    for (i = 0; i < 5; i++) {
+        addRandomEdge(&G, def_weight);
+    }
+
+    addEdge(&G, 0, 1, def_weight);
+}
 ```
 
-Once the graph is constructed, it can be viewed using a number of display
-options, such as printing on screen using `show(&G)`, exporting to pdf using
+Addition of duplicate vertices and edges is not supported in the default
+methods. Once the graph is constructed, it can be viewed using a number of display
+options, such as printing on screen as a list sing `show(&G)`, exporting to pdf using
 `showDot(&G)`, exporting to dimac using `exportDimac(&G)`, and so on.
 
-The default internal data storage for holding graph information is the double
+For compilation of the library, run `make` and `make install`. For compiling
+your code, use `gcc code.c -lNucesGraph`. Specify the include and linking file
+using `-I` and `-L` if necessary.
+
+The default internal data structure for holding graph information is the double
 linked list. Adjacency matrices can be used by calling `adjacencyMatrix(&G)`,
 and then being accessible as `G->adjacency_matrix`. Incidence matrices can be
 used by calling `incidenceMatrix(&G)` and then being accessible as
