@@ -18,6 +18,22 @@
 extern const char *colors[20];
 extern const int  colornumbers[20];
 
+struct degree_info
+{
+	int sum_in_degree;
+	int sum_out_degree;
+	int avg_in_degree;
+	int avg_out_degree;
+	int range_in;
+	int range_out;
+	int max_in_degree;
+	int min_in_degree;
+	int max_out_degree;
+	int min_out_degree;
+	int **degree_histogram_in;
+	int **degree_histogram_out;
+};
+
 struct vertex
 {
 	int label;
@@ -46,9 +62,7 @@ struct verList
 	int count;
 	struct vertex *head;
 	struct vertex *tail;
-
-	int **degree_histogram_in;
-	int **degree_histogram_out;
+	struct degree_info deg_info;
 };
 
 struct edgList
@@ -134,6 +148,8 @@ struct nGraph newRandomTree(char *, int);
 struct nGraph newCompleteGraph(char *, int);
 struct nGraph newPath(char *, int);
 struct nGraph newStar(char *, int);
+struct nGraph newErdosRenyiGNP(char *, int, double);
+struct nGraph newErdosRenyiGNM(char *, int, int);
 
 // Binary operations
 struct nGraph gUnion(struct nGraph *, struct nGraph *);
@@ -141,4 +157,8 @@ struct nGraph gRingSum(struct nGraph *, struct nGraph *);
 struct nGraph gIntersection(struct nGraph *, struct nGraph *);
 struct nGraph crossProduct(struct nGraph *, struct nGraph *);
 struct nGraph gUnionVertex(struct nGraph *, int);
+
+// Extra
+int factorial(int);
+int NcR(int, int);
 #endif

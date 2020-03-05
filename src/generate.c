@@ -1,15 +1,15 @@
 /**
- * @brief Code for generating families of graphs
+ * @brief This file contains code snippets for generating various families of
+ * graphs.
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <sys/times.h>
 #include <string.h>
 #include "nucesGraph.h"
-
-
 
 /**
  * Constructs a random tree.
@@ -112,6 +112,7 @@ struct nGraph newStar(char *c, int n)
 
 /**
  * Constructs a Path graph \f$P_{n}\f$ of n vertices
+ * @param c Label for the Graph
  * @param n Number of Vertices
  * @return Graph object
  */
@@ -132,4 +133,76 @@ struct nGraph newPath(char *c, int n)
 	return tmp;
 }
 
+/**
+ * Constructs a random graph (may be disconnected), given \f$N\f$ nodes. An edge
+ * between unique pairs \f$i, j\f$ will be added to the graph based on its
+ * probability \f$P\f$. The working principle follows the Erdos-Renyi G(N,P) 
+ * Random Graph model.
+ * @param lbl Label for the Graph
+ * @param N number of vertices
+ * @param P probability of an edge
+ * @return Graph object
+ */
+struct nGraph newErdosRenyiGNP(char *lbl, int N, double P)
+{
+	struct nGraph tmp = newGraph(lbl);
 
+	int i, j;
+	for (i = 0; i < N; i++) {
+		addVertex(&tmp, i);
+	}
+
+	double rnd;
+	srand(clock());
+	for (j = 0; j < N; j++) {
+		for (i = j+1; i < N; i++) {
+			if (i != j) {
+				rnd = rand()/(double)RAND_MAX;
+				if (rnd < P) { 
+					addEdge(&tmp, i, j, 1);
+				}
+			}
+		}
+	}
+	return tmp;
+}
+
+/**
+ * Constructs a random graph (may be disconnected), given \f$N\f$ nodes. An edge
+ * between unique pairs \f$i, j\f$ will be added to the graph based on its
+ * probability \f$P\f$. The working principle follows the Erdos-Renyi G(N,M) 
+ * Random Graph model.
+ * @param lbl Label for the Graph
+ * @param N number of vertices
+ * @param M number of edges
+ * @return Graph object
+ */
+struct nGraph newErdosRenyiGNM(char *lbl, int N, int M)
+{
+	struct nGraph tmp = newGraph(lbl);
+
+	int i, j;
+	for (i = 0; i < N; i++) {
+		addVertex(&tmp, i);
+	}
+
+	double P = M/(double)((N*N-1)/2.);
+	int count = 0;
+
+	double rnd;
+	srand(clock());
+
+	while (count < M) {
+		i = rand() % N;
+		j = rand() % N;
+		while (i == j) {
+			j = rand() % N;
+		}
+		rnd = rand()/(double)RAND_MAX;
+		if (rnd < P) {
+			count++;
+			addEdge(&tmp, i, j, 1);
+		}
+	}
+	return tmp;
+}

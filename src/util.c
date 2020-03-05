@@ -57,8 +57,8 @@ void nGraphInit(struct nGraph *G, char *t)
 	G->E->count = 0;
 	G->label = calloc(10,sizeof(char));//malloc(sizeof(char)*10);
 	strcpy(G->label, t);
-	G->V->degree_histogram_in  = NULL;
-	G->V->degree_histogram_out = NULL;
+	G->V->deg_info.degree_histogram_in  = NULL;
+	G->V->deg_info.degree_histogram_out = NULL;
 	G->adjacency_matrix        = NULL;
 	G->incidence_matrix        = NULL;
 }
@@ -868,44 +868,74 @@ void degreeHistogram(struct nGraph *G)
 	int range_in  = max_in_degree  - min_in_degree  + 1;
 	int range_out = max_out_degree - min_out_degree + 1;
 
-	G->V->degree_histogram_in  = malloc(sizeof(int*)*(unsigned int)range_in);
-	G->V->degree_histogram_out = malloc(sizeof(int*)*(unsigned int)range_out);
+	G->V->deg_info.degree_histogram_in  = malloc(sizeof(int*)*(unsigned int)range_in);
+	G->V->deg_info.degree_histogram_out = malloc(sizeof(int*)*(unsigned int)range_out);
 	int i;
 	for (i = 0; i < range_in; i++) {
-		G->V->degree_histogram_in[i] = malloc(sizeof(int)*2);
-		G->V->degree_histogram_in[i][0] = i+min_in_degree;
-		G->V->degree_histogram_in[i][1] = 0;
+		G->V->deg_info.degree_histogram_in[i] = malloc(sizeof(int)*2);
+		G->V->deg_info.degree_histogram_in[i][0] = i+min_in_degree;
+		G->V->deg_info.degree_histogram_in[i][1] = 0;
 	}
 	for (i = 0; i < range_out; i++) {
-		G->V->degree_histogram_out[i] = malloc(sizeof(int)*2);
-		G->V->degree_histogram_out[i][0] = i+min_out_degree;
-		G->V->degree_histogram_out[i][1] = 0;
+		G->V->deg_info.degree_histogram_out[i] = malloc(sizeof(int)*2);
+		G->V->deg_info.degree_histogram_out[i][0] = i+min_out_degree;
+		G->V->deg_info.degree_histogram_out[i][1] = 0;
 	}
 
 	tmp = G->V->head;
 	while(tmp != NULL) {
-		G->V->degree_histogram_in[tmp->degree_in - min_in_degree][1]++;
-		G->V->degree_histogram_out[tmp->degree_out - min_out_degree][1]++;
+		G->V->deg_info.degree_histogram_in[tmp->degree_in - min_in_degree][1]++;
+		G->V->deg_info.degree_histogram_out[tmp->degree_out - min_out_degree][1]++;
 
 		tmp = tmp->next;
 	}
 	if(G->directed == 1) {
-		printf("Degree In  (Sum: %d, Mean: %f)\n", sum_in_degree, avg_in_degree);
+		printf("Degree In Sum: %d, Mean: %f)\n", sum_in_degree, avg_in_degree);
 		for (i = 0; i < range_in; i++) {
-			printf("%d : %d\n", G->V->degree_histogram_in[i][0], 
-					                G->V->degree_histogram_in[i][1]);
+			printf("%d : %d\n", G->V->deg_info.degree_histogram_in[i][0], 
+					                G->V->deg_info.degree_histogram_in[i][1]);
 		}
 		printf("Degree Out (Sum: %d, Mean: %f)\n", sum_out_degree, avg_out_degree);
 		for (i = 0; i < range_out; i++) {
-			printf("%d : %d\n", G->V->degree_histogram_out[i][0],
-													G->V->degree_histogram_out[i][1]);
+			printf("%d : %d\n", G->V->deg_info.degree_histogram_out[i][0],
+													G->V->deg_info.degree_histogram_out[i][1]);
 		}
 	} else {
 		printf("Degree (Sum: %d, Mean: %f)\n", sum_in_degree, avg_in_degree);
 		for (i = 0; i < range_out; i++) {
-			printf("%d : %d\n", G->V->degree_histogram_in[i][0],
-													G->V->degree_histogram_in[i][1]);
+			printf("%d : %d\n", G->V->deg_info.degree_histogram_in[i][0],
+													G->V->deg_info.degree_histogram_in[i][1]);
 		}
 	}
 	printf("\n");
+
+	G->V->deg_info.sum_in_degree  = sum_in_degree;
+	G->V->deg_info.sum_out_degree = sum_out_degree;
+	G->V->deg_info.avg_in_degree  = avg_in_degree;
+	G->V->deg_info.avg_out_degree = avg_out_degree;
+	G->V->deg_info.range_in       = range_in;
+	G->V->deg_info.range_out      = range_out;
+	G->V->deg_info.max_in_degree  = max_in_degree;
+	G->V->deg_info.min_in_degree  = min_in_degree;
+	G->V->deg_info.max_out_degree = max_out_degree;
+	G->V->deg_info.min_out_degree = min_out_degree;
+}
+
+int factorial(int f)
+{
+	if (f == 0) return 1;
+	if (f == 1) return 1;
+	return f * factorial(f-1);
+}
+
+int NcR(int n, int r)
+{
+	if (r == 0) return 1;
+	if (r > n / 2) return NcR(n, n - r);
+	long res = 1;
+	for (int k = 1; k <= r; ++k) {
+		res *= n - k + 1;
+		res /= k;
+	}
+	return res;
 }
