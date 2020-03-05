@@ -199,6 +199,25 @@ void listVerticesAlphabet(struct nGraph *G)
 	printf("}\n");
 }
 
+void listBK_temp(struct nGraph *G)
+{
+	struct vertex *tmp = G->V->head;
+	printf("%s%s = { %s", KRED, G->label, KBLU);
+	int count = 0; 
+	while(tmp != NULL && G->V->count > 0) {
+		if (tmp->lblString != NULL && strlen(tmp->lblString) > 0) {
+			printf("(%d) %s", tmp->label, tmp->lblString);
+		}
+		else {
+			printf("%d", tmp->label);
+		}
+		printf("%s", G->V->count-1 == count ? " " : ", ");
+		tmp = tmp->next;
+		count++;
+	}
+	printf("%s}%s", KRED, KWHT);
+}
+
 void listVertices(struct nGraph *G)
 {
 	struct vertex *tmp = G->V->head;

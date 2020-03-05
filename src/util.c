@@ -30,6 +30,18 @@ void nGraphFree(struct nGraph *G)
 }
 
 /** 
+ * Change the Label of a Graph.
+ * @param G Graph object
+ * @param t New Label
+ */
+
+void graphChangeLabel(struct nGraph *G, char *t)
+{
+	G->label = calloc(sizeof(t)/sizeof(char), sizeof(char));
+	strcpy(G->label, t);
+}
+
+/** 
  * Initializes internal pointers of a Graph object that has already been
  * created. Also sets various internal counters to zero.
  * @param G Graph object G=(V,E)
@@ -627,26 +639,47 @@ void removeEdge(struct nGraph *P, int c, int d)
 	}
 }
 
+/**
+ * Remove a set of edges that are incident to a vertex. This function is
+ * suitably called whenever a vertex c is deleted. It would then be necesssary
+ * to remove all edges that are incident on this vertex c.
+ * @param P Graph object
+ * @param c Vertex to delete
+ */
+
 void removeEdges(struct nGraph *P, int c)
 {
-	struct edge *tmp = P->E->head;
-	struct edge *pre = tmp;
+	struct edge *tmp;
+	struct edge *tmp2;
+
+	tmp = P->E->head;
 
 	while(tmp != NULL) {
 		if (tmp->head == c || tmp->tail == c) {
-			updateVertexDegree(P, tmp->head, tmp->tail, 0, 0);
-			if (pre == P->E->head) { // first link
-				pre = tmp->next;
-				P->E->head = pre;
-				printf("%d-%d\n", tmp->head, tmp->tail);
+			if (tmp->prev == NULL) {
+				printf("%d in heat\n", c);
+				P->E->head = tmp->next;
+				P->E->head->prev = NULL;
+				P->E->count--;
+				free(tmp);
+				tmp = P->E->head->next;
+			} else if (tmp->next == NULL) {
+				printf("%d in tail\n", c);
+				P->E->tail = tmp->prev;
+				P->E->tail->next = NULL;
+				P->E->count--;
+				free(tmp);
+				tmp = P->E->tail->next;
 			} else {
-				pre->next = tmp->next;
+				printf("%d in middle\n", c);
+				tmp2 = tmp;
+				tmp->prev->next = tmp->next;
+				tmp->next->prev = tmp->prev;
+				P->E->count--;
+				tmp = tmp->next;
+				free(tmp2);
 			}
-			P->E->count--;
-			tmp = tmp->next;
-		}
-		else {
-			pre = tmp;
+		} else {
 			tmp = tmp->next;
 		}
 	}
@@ -698,26 +731,28 @@ void removeVertex(struct nGraph *P, int c)
 	struct vertex *tmp = P->V->head;
 	struct vertex *pre;
 
-	if (P->V->head->label == c) {
-		P->V->head = P->V->head->next;
-		P->V->count--;
-		removeEdges(P, c);
-		free(tmp);
-	}
-	else {
-		pre = tmp;
-		tmp = tmp->next;
-		while(tmp != NULL) {
-			if (tmp->label == c) {
-				pre->next = tmp->next;
-				P->V->count--;
-				removeEdges(P, c);
-				free(tmp);
-				break;
-			}
-			else {
-				pre = tmp;
-				tmp = tmp->next;
+	if (P->V->count != 0) {
+		if (P->V->head->label == c) {
+			P->V->head = P->V->head->next;
+			P->V->count--;
+			removeEdges(P, c);
+			free(tmp);
+		}
+		else {
+			pre = tmp;
+			tmp = tmp->next;
+			while(tmp != NULL) {
+				if (tmp->label == c) {
+					pre->next = tmp->next;
+					P->V->count--;
+					removeEdges(P, c);
+					free(tmp);
+					break;
+				}
+				else {
+					pre = tmp;
+					tmp = tmp->next;
+				}
 			}
 		}
 	}

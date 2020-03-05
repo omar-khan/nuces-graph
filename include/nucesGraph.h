@@ -75,11 +75,13 @@ void nGraphInit(struct nGraph *, char *);
 void addVertex(struct nGraph *, int);
 void addVertexLabel(struct nGraph *, char *);
 void copyVertexLabel(struct nGraph *, int, char *);
+void graphChangeLabel(struct nGraph *, char *);
 void addVertexDuplicateOK(struct nGraph *, int);
 void addEdgeLabel(struct nGraph *, char *, char *, int);
 void addEdgeDirected(struct nGraph *, int, int, int);
 void addEdge(struct nGraph *, int, int, int);
 void addRandomEdge(struct nGraph *, int);
+void removeEdge(struct nGraph *, int, int);
 void removeVertex(struct nGraph *, int);
 void removeVertexPopLast(struct nGraph *);
 void removeEdgePopLast(struct nGraph *);
@@ -99,6 +101,7 @@ void exportDimac(struct nGraph *);
 void makeDimac(struct nGraph *, char *);
 void listVerticesAlphabet(struct nGraph *);
 void listVertices(struct nGraph *);
+void listBK_temp(struct nGraph *);
 void listEdges(struct nGraph *);
 
 // Search 
@@ -119,7 +122,7 @@ void degreeHistogram(struct nGraph *);
 
 // Algorithms
 int shortestPathLength(struct nGraph *, int, int);
-void BronKerbosch(struct nGraph, struct nGraph, struct nGraph, struct nGraph);
+void BronKerbosch(struct nGraph *, struct nGraph *, struct nGraph *, struct nGraph *);
 
 // Subsets
 struct nGraph getVertices(struct nGraph *);

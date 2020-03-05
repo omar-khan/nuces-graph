@@ -1,8 +1,8 @@
 #include "nucesGraph.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
-	/* Test 1 */
 	struct nGraph G = newGraph("G");
 
 	addVertex(&G, 1);
@@ -13,18 +13,20 @@ int main(int argc, char *argv[])
 	addVertex(&G, 6);
 
 	addEdge(&G, 1, 2, 0);
+	addEdge(&G, 5, 1, 0);
+	addEdge(&G, 2, 5, 0);
 	addEdge(&G, 2, 3, 0);
-	addEdge(&G, 3, 1, 0);
-	addEdge(&G, 2, 4, 0);
-	addEdge(&G, 3, 5, 0);
 	addEdge(&G, 4, 5, 0);
-	addEdge(&G, 1, 6, 0);
+	addEdge(&G, 3, 4, 0);
+	addEdge(&G, 4, 6, 0);
 
 	struct nGraph P = getVertices(&G);
 	struct nGraph R = newGraph("R");
 	struct nGraph X = newGraph("X");
 
-	BronKerbosch(G, P, R, X);
+	show(&G);
+
+	BronKerbosch(&G, &P, &R, &X);
 
 	return 0;
 }
