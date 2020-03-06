@@ -48,4 +48,3 @@ used by calling `incidenceMatrix(&G)` and then being accessible as
 For algorithms, refer to the **tests** folder which contains some example
 implementations.
 
-
