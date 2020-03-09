@@ -134,6 +134,20 @@ struct nGraph newPath(char *c, int n)
 }
 
 /**
+ * Constructs a Ring graph \f$P_{n}\f$ of n vertices
+ * @param c Label for the Graph
+ * @param n Number of Vertices
+ * @return Graph object
+ */
+
+struct nGraph newRing(char *c, int n)
+{
+	struct nGraph tmp = newPath(c, n);
+	addEdge(&tmp, 0, tmp.V->count-1, 1);
+	return tmp;
+}
+
+/**
  * Constructs a random graph (may be disconnected), given \f$N\f$ nodes. An edge
  * between unique pairs \f$i, j\f$ will be added to the graph based on its
  * probability \f$P\f$. The working principle follows the Erdos-Renyi G(N,P) 
@@ -207,6 +221,15 @@ struct nGraph newErdosRenyiGNM(char *lbl, int N, int M)
 	return tmp;
 }
 
+/**
+ * Constructs a random scale free graph based on the Albert Barabasi model. To
+ * construct the graph, a seed in the form of a smaller graph is required. 
+ * @param lbl Label of the Graph
+ * @param pattern Seed graph object
+ * @param M number of additional vertices in the graph
+ * @return Graph object
+ */
+
 struct nGraph newBarabasiAlbert(char *lbl, struct nGraph *pattern, int M)
 {
 	struct nGraph tmp = newGraph(lbl);
@@ -231,6 +254,26 @@ struct nGraph newBarabasiAlbert(char *lbl, struct nGraph *pattern, int M)
 			}
 			tmp_vertex = tmp_vertex->next;
 		}
+	}
+	return tmp;
+}
+
+/**
+ * Returns a hypercube of a given order. At the moment there is a buffer
+ * overflow error for orders > 3.
+ * @param lbl Label for the Hypercube graph
+ * @param order Order of the Hypercube graph
+ * @return Graph object
+ */
+
+struct nGraph newHyperCube(char *lbl, int order)
+{
+	struct nGraph tmp = newPath(lbl, 2);
+	struct nGraph P2  = newPath(lbl, 2);
+
+	int i;
+	for (i = 1; i < order; i++) {
+		tmp = crossProduct(&tmp, &P2);
 	}
 	return tmp;
 }

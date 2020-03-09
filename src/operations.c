@@ -1,14 +1,44 @@
 #include <string.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "nucesGraph.h"
 
 struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 {
 	struct nGraph tmp = newGraph(strcat(strcat(G1->label, "x"), G2->label));
 
-	int count = G1->V->count * G2->V->count;
-	int x;
-	for (x = 0; x < count; x++) {
-		addVertex(&tmp, x+1);
+	struct vertex *utmp = G1->V->head;
+	while(utmp != NULL) {
+		if (utmp->lblString == NULL) {
+			utmp->lblString = malloc(sizeof(char)*(int)ceil(log(utmp->label == 0 ? utmp->label+2 : utmp->label+1)/(double)log(10)));
+			sprintf(utmp->lblString, "%d", utmp->label);
+		}
+		utmp = utmp->next;
+	}
+	struct vertex *vtmp = G2->V->head;
+	while(vtmp != NULL) {
+		if (vtmp->lblString == NULL) {
+			vtmp->lblString = malloc(sizeof(char)*(int)ceil(log(vtmp->label == 0 ? vtmp->label+2 : vtmp->label+1)/(double)log(10)));
+			sprintf(vtmp->lblString, "%d", vtmp->label);
+		}
+		vtmp = vtmp->next;
+	}
+
+	utmp = G1->V->head;
+	while (utmp != NULL) {
+		vtmp = G2->V->head;
+		while (vtmp != NULL) {
+
+			addVertex(&tmp, tmp.V->count);
+			tmp.V->tail->lblString = malloc(sizeof(char)*((int)(strlen(utmp->lblString)+strlen(vtmp->lblString)+strlen(","))));
+			strcpy(tmp.V->tail->lblString, utmp->lblString);
+			strcpy(tmp.V->tail->lblString, strcat(tmp.V->tail->lblString, ","));
+			strcpy(tmp.V->tail->lblString, strcat(tmp.V->tail->lblString, vtmp->lblString));
+
+			vtmp = vtmp->next;
+		}
+		utmp = utmp->next;
 	}
 
 	struct edge *edgeTmp = G1->E->head;
@@ -20,6 +50,7 @@ struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 
 		edgeTmp = edgeTmp->next;
 	}
+	
 	return tmp;
 }
 

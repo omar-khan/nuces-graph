@@ -505,7 +505,7 @@ void addVertexLabel(struct nGraph *G, char *c)
 		int currentVertices = G->V->count; 
 		addVertex(G, currentVertices);
 		setVertexLabel(G, currentVertices, c);
-	} 
+	}
 }
 
 void addVertex(struct nGraph *G, int c)
