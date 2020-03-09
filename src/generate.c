@@ -206,3 +206,31 @@ struct nGraph newErdosRenyiGNM(char *lbl, int N, int M)
 	}
 	return tmp;
 }
+
+struct nGraph newBarabasiAlbert(char *lbl, struct nGraph *pattern, int M)
+{
+	struct nGraph tmp = newGraph(lbl);
+	copyGraph(&tmp, pattern);
+
+	int i, count = 0;
+	double P, rnd;
+	struct vertex *tmp_vertex;
+
+	i = 0;
+	while(i < M) { 
+		tmp_vertex = tmp.V->head;
+		count      = 0; 
+		while (count < pattern->V->count && tmp_vertex != NULL) {
+			P = tmp_vertex->degree_in / (double)(2*tmp.E->count);
+			rnd = rand()/(double)RAND_MAX;
+			if (rnd < P) {
+				addVertex(&tmp, tmp.V->count);
+				addEdge(&tmp, tmp.V->count-1, tmp_vertex->label, 1);
+				count++;
+				i++;
+			}
+			tmp_vertex = tmp_vertex->next;
+		}
+	}
+	return tmp;
+}

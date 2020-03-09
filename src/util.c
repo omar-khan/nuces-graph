@@ -461,7 +461,7 @@ void copyGraphDuplicateOK(struct nGraph *dest, struct nGraph *src)
 }
 
 void copyGraph(struct nGraph *dest, struct nGraph *src)
-{
+{ 
 	struct vertex *tmp = src->V->head;
 	while(tmp != NULL) {
 		addVertex(dest, tmp->label);
