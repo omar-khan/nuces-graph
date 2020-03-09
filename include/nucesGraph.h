@@ -150,6 +150,7 @@ struct nGraph newPath(char *, int);
 struct nGraph newStar(char *, int);
 struct nGraph newErdosRenyiGNP(char *, int, double);
 struct nGraph newErdosRenyiGNM(char *, int, int);
+struct nGraph newBarabasiAlbert(char *, struct nGraph *, int);
 
 // Binary operations
 struct nGraph gUnion(struct nGraph *, struct nGraph *);
