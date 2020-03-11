@@ -154,7 +154,13 @@ void showDot(struct nGraph *B)
 	pid_t pid = fork();
 	if (pid == 0) {
 		printf("Source (dot) at: %s\nImage  (pdf) at: %s\n\n", filename, fileimage);
-		execl("/usr/bin/neato", "/usr/bin/neato", filename, "-T", "pdf", "-o", fileimage, NULL);
+		switch(B->displayType)
+		{
+			case 1: execl("/usr/bin/twopi", "/usr/bin/twopi", filename, "-T", "pdf", "-o", fileimage, NULL);
+							break;
+			default: execl("/usr/bin/neato", "/usr/bin/neato", filename, "-T", "pdf", "-o", fileimage, NULL);
+							 break;
+		}
 		printf("i should not be printed\n");
 	}
 	else if (pid > 0) {
@@ -255,4 +261,12 @@ void listEdges(struct nGraph *G)
 	printf("}\n%s\n", KWHT);
 }
 
+void setDisplayType(struct nGraph *G, char *type)
+{
+	if (strcmp(type, "circular") == 0) {
+		G->displayType = 1;
+	} else {
+		G->displayType = 0;
+	}
 
+}

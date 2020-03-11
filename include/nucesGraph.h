@@ -78,7 +78,7 @@ typedef struct nGraph
 	struct verList *V;
 	struct edgList *E;
 	int directed;
-
+	int displayType;
 	int *adjacency_matrix;
 	int *incidence_matrix;
 } nGraph;
@@ -117,6 +117,7 @@ void listVerticesAlphabet(struct nGraph *);
 void listVertices(struct nGraph *);
 void listBK_temp(struct nGraph *);
 void listEdges(struct nGraph *);
+void setDisplayType(struct nGraph *, char *);
 
 // Search 
 int searchVertexLabel(struct nGraph *, char *);
@@ -142,8 +143,10 @@ void BronKerbosch(struct nGraph *, struct nGraph *, struct nGraph *, struct nGra
 struct nGraph getVertices(struct nGraph *);
 struct nGraph getNeighbours(struct nGraph *, int);
 void placeNeighbours(struct nGraph *, int, struct nGraph *);
-int commonNeighbors(struct nGraph *, int, int);
 struct nGraph getCommonNeighbors(struct nGraph *, int, int);
+int commonNeighbors(struct nGraph *, int, int);
+double jaccardCoefficient(struct nGraph *, int, int);
+double adamicAdarIndex(struct nGraph *, int, int);
 
 // Generate
 struct nGraph newRandomTree(char *, int);
@@ -155,6 +158,8 @@ struct nGraph newErdosRenyiGNP(char *, int, double);
 struct nGraph newErdosRenyiGNM(char *, int, int);
 struct nGraph newBarabasiAlbert(char *, struct nGraph *, int);
 struct nGraph newHyperCube(char *, int);
+struct nGraph newPetersenGraph(char *);
+struct nGraph newWheel(char *, int);
 
 // Binary operations
 struct nGraph gUnion(struct nGraph *, struct nGraph *);

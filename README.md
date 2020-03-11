@@ -7,7 +7,24 @@ and developed by students (as a learning effort) taking the course *CS629
 Networks & Graph Theory* at the *National University of Computer and Emerging
 Sciences (NUCES), Peshawar, Pakistan*.
 
-Example usage for the library is given below:
+### Installation
+
+For compilation of the library, run `./configure.sh`, followed by `make`. This
+will add relevant linking files to the *lib* folder.
+
+For compilation of tests included in the library, run `make tests`, which are
+then accessible in the *tests* folder. 
+
+For a system-wide installation, run `make install` with super user privileges.
+The installation defaults to */usr/local/lib* for linking files, and
+*/usr/local/include* for the header files. To change the default location, pass 
+the new location to configure script as `./configure.sh --prefix=/new/location`.
+
+Lastly, configure the `LD_LIBRARY_PATH` environment variable to point to the
+installation location. Otherwise, you have to specify this location every time
+you run your code. 
+
+### Example Usage
 
 ```c
 #include <nucesGraph.h>
@@ -30,21 +47,19 @@ int main(int argc, char **argv)
 }
 ```
 
-Addition of duplicate vertices and edges is not supported in the default
-methods. Once the graph is constructed, it can be viewed using a number of display
-options, such as printing on screen as a list sing `show(&G)`, exporting to pdf using
-`showDot(&G)`, exporting to dimac using `exportDimac(&G)`, and so on.
+For compiling this code, run `gcc code.c -lNucesGraph`. Specify the include and
+linking file locations using `-I` and `-L` if necessary (E.g. `gcc code.c -I/usr/local/include -L/usr/local/lib -lNucesGraph`).
 
-For compilation of the library, run `make` and `make install`. For compiling
-your code, use `gcc code.c -lNucesGraph`. Specify the include and linking file
-using `-I` and `-L` if necessary.
+To run the code, run directly as `./a.out`, or if the `LD_LIBRARY_PATH` is not
+configured, as `LD_LIBRARY_PATH=/location/of/lib/folder ./a.out`.
 
-The default internal data structure for holding graph information is the double
-linked list. Adjacency matrices can be used by calling `adjacencyMatrix(&G)`,
-and then being accessible as `G->adjacency_matrix`. Incidence matrices can be
-used by calling `incidenceMatrix(&G)` and then being accessible as
-`G->incidence_matrix`
+### Documentation
 
-For algorithms, refer to the **tests** folder which contains some example
-implementations.
+The documentation is provided as doxygen generated pdf and html pages. The HTML
+pages can be generated using `make doc` while the pdf can be generated using
+`make docpdf`.
 
+### Uninstall
+
+The build directory can be cleaned using `make clean`. System wide installation
+can be reversed by calling `make uninstall` with super user privileges. 

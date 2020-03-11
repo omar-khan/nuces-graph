@@ -51,6 +51,7 @@ void graphChangeLabel(struct nGraph *G, char *t)
 void nGraphInit(struct nGraph *G, char *t)
 {
 	G->directed = 0;
+	G->displayType = 0;
 	G->V = calloc(1,sizeof(struct verList));//malloc(sizeof(struct verList));
 	G->V->count = 0;
 	G->E = calloc(1,sizeof(struct edgList));//malloc(sizeof(struct edgList));
@@ -933,7 +934,8 @@ int NcR(int n, int r)
 	if (r == 0) return 1;
 	if (r > n / 2) return NcR(n, n - r);
 	long res = 1;
-	for (int k = 1; k <= r; ++k) {
+	int k;
+	for (k = 1; k <= r; ++k) {
 		res *= n - k + 1;
 		res /= k;
 	}

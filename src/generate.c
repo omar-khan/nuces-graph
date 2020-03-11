@@ -277,3 +277,48 @@ struct nGraph newHyperCube(char *lbl, int order)
 	}
 	return tmp;
 }
+
+/**
+ * Returns Petersen's graph of 10 vertices and 15 edges
+ * @param lbl Label for the graph
+ * @return Graph object
+ */
+
+struct nGraph newPetersenGraph(char *lbl)
+{
+	struct nGraph tmp = newGraph(lbl);
+	int i;
+	for (i = 0; i < 5; i++) {
+		addVertex(&tmp, i);
+		addVertex(&tmp, i+5);
+	}
+	for (i = 0; i < 10; i+=2) {
+		addEdge(&tmp, i%5,   (i+2)%5, 1); // Inner Star
+		addEdge(&tmp, i/2+5, (i/2+6)%5+5, 1);  
+		addEdge(&tmp, i/2,   (i/2)+5, 1);
+	}
+	return tmp;
+}
+
+/* Returns a Wheel Graph of \f$n \geq 4\f$ vertices.
+ * @param lbl Label for the graph
+ * @param n Number of vertices
+ * @return Graph object
+ */
+
+struct nGraph newWheel(char *lbl, int n)
+{
+	struct nGraph tmp = newGraph(lbl);
+
+	int i;
+	for (i = 0; i < n; i++) {
+		addVertex(&tmp, i);
+	}
+
+	for (i = 1; i < n; i++) {
+		addEdge(&tmp, i, i == n-1 ? 1 : i+1, 1);
+		addEdge(&tmp, 0, i, 1);
+	}
+
+	return tmp;
+}

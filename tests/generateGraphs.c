@@ -13,6 +13,8 @@ int main(int argc, char *argv[])
 	struct nGraph R2 = newErdosRenyiGNM("G", 50, 20);   // Random Graph G(N,M)
 	struct nGraph R3 = newBarabasiAlbert("B", &T1, 20); // Random Scale Free Graph
 	struct nGraph H1 = newHyperCube("G", 5);            // Hyper cube of order upto 5
+	struct nGraph P2 = newPetersenGraph("P");           // Petersens Graph
+	struct nGraph W1 = newWheel("W", 101);               // Wheel Graph
 
 	show(&S1);
 	show(&K1);
@@ -23,6 +25,8 @@ int main(int argc, char *argv[])
 	show(&R2);
 	show(&R3);
 	show(&H1);
-
+	show(&P2);
+	showDot(&W1);
+	
 	return 0;
 }

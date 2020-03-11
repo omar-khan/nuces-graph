@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
 	adjacencyMatrix(&G);
 	incidenceMatrix(&G);
 
+	exportDimac(&G);
+
 	return 0;
 }
 

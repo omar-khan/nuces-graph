@@ -1,10 +1,9 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 CC=gcc
 CFLAGS=-Wall -Werror -fPIC -O3
-LDFLAGS=-g -pg -ggdb3
 INCLUDE=-I$(ROOT_DIR)/include
 LIBRARY=-L$(ROOT_DIR)/lib
-LDFLAGSLIB = -lm -lNucesGraph
+LDFLAGSLIB=-lNucesGraph -lm
 
 SRCSSRC = $(wildcard src/*.c)
 SRCSTEST = $(wildcard tests/*.c)
@@ -12,7 +11,7 @@ SRCSTEST = $(wildcard tests/*.c)
 OBJSSRC = $(SRCSSRC:.c=.o)
 OBJSTEST = $(SRCSTEST:.c=.o)
 
-.PHONY: all tests install clean
+.PHONY: all tests doc docpdf install clean
 
 all: $(SRCSSRC) $(OBJSSRC) 
 	mkdir -p lib
@@ -21,23 +20,32 @@ all: $(SRCSSRC) $(OBJSSRC)
 	ln -sf libNucesGraph.so.1.0 lib/libNucesGraph.so
 
 $(OBJSSRC): %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@ $(LDFLAGS)
+	$(CC) $(DBGFLAGS) $(CFLAGS) $(INCLUDE) -c $< -o $@ $(LDFLAGS)
 
 tests: $(SRCSTEST) $(OBJSTEST)
 
 $(OBJSTEST): %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(LIBRARY) $< -o $@ $(LDFLAGSLIB) $(LDFLAGS)
+	$(CC) $(DBGFLAGS) $(CFLAGS) $(INCLUDE) $(LIBRARY) $< -o $@ $(LDFLAGSLIB) $(LDFLAGS)
 
 doc: doxygen.conf
 	doxygen doxygen.conf
-	make -C doc/latex
-	mv doc/latex/refman.pdf doc/doc.pdf
+
+docpdf: doxygen.conf
+	doxygen doxygen.conf
+	make -C docs/latex
+	mv docs/latex/refman.pdf docs/doc.pdf
 
 install:
-	mkdir -p /opt/nucesGraph
-	cp lib/libNucesGraph.so.1.0 /opt/nucesGraph/libNucesGraph.so.1.0
-	ln -sf /opt/nucesGraph/libNucesGraph.so.1.0 /opt/nucesGraph/libNucesGraph.so.1
-	ln -sf /opt/nucesGraph/libNucesGraph.so.1.0 /opt/nucesGraph/libNucesGraph.so
+	mkdir -p $(PREFIX)/lib
+	cp lib/libNucesGraph.so.1.0 $(PREFIX)/lib/libNucesGraph.so.1.0
+	ln -sf $(PREFIX)/lib/libNucesGraph.so.1.0 $(PREFIX)/lib/libNucesGraph.so.1
+	ln -sf $(PREFIX)/lib/libNucesGraph.so.1.0 $(PREFIX)/lib/libNucesGraph.so
+	mkdir -p $(PREFIX)/include
+	cp include/nucesGraph.h $(PREFIX)/include/nucesGraph.h
+
+uninstall:
+	rm $(PREFIX)/lib/libNuces*
+	rm $(PREFIX)/include/nucesGraph.h
 
 clean:
 	rm -f $(OBJSTEST) $(OBJSSRC) 
@@ -48,4 +56,5 @@ clean:
 	rm -f src/.s*
 	rm -f tests/.*.swp
 	rm -f gmon.out	
-	rm doc -rf
+	rm -f Makefile
+	rm docs -rf
