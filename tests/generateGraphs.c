@@ -4,29 +4,25 @@
 
 int main(int argc, char *argv[])
 {
-	struct nGraph S1 = newStar("S", 5);                 // Star Graph
-	struct nGraph K1 = newCompleteGraph("B", 3);        // Complete Graph
-	struct nGraph P1 = newPath("P", 3);                 // Path Graph
-	struct nGraph C1 = newRing("C", 5);                 // Ring Graph 
-	struct nGraph T1 = newRandomTree("T", 10);          // Random Tree
-	struct nGraph R1 = newErdosRenyiGNP("G", 50, .01);  // Random Graph G(N,P)
-	struct nGraph R2 = newErdosRenyiGNM("G", 50, 20);   // Random Graph G(N,M)
-	struct nGraph R3 = newBarabasiAlbert("B", &T1, 20); // Random Scale Free Graph
-	struct nGraph H1 = newHyperCube("G", 5);            // Hyper cube of order upto 5
-	struct nGraph P2 = newPetersenGraph("P");           // Petersens Graph
-	struct nGraph W1 = newWheel("W", 101);               // Wheel Graph
+	struct nGraph G[11];
 
-	show(&S1);
-	show(&K1);
-	show(&P1);
-	show(&C1);
-	show(&T1);
-	show(&R1);
-	show(&R2);
-	show(&R3);
-	show(&H1);
-	show(&P2);
-	showDot(&W1);
-	
+	G[0]  = newStar("S", 5);                 // Star Graph
+	G[1]  = newCompleteGraph("B", 3);        // Complete Graph
+	G[2]  = newPath("P", 3);                 // Path Graph
+	G[3]  = newRing("C", 5);                 // Ring Graph 
+	G[4]  = newRandomTree("T", 10);          // Random Tree
+	G[5]  = newErdosRenyiGNP("G", 50, .01);  // Random Graph G(N,P)
+	G[6]  = newErdosRenyiGNM("G", 50, 20);   // Random Graph G(N,M)
+	G[7]  = newBarabasiAlbert("B", &G[2], 20); // Random Scale Free Graph
+	G[8]  = newHyperCube("G", 5);            // Hyper cube of order upto 5
+	G[9]  = newPetersenGraph("P");           // Petersens Graph
+	G[10] = newWheel("W", 21);               // Wheel Graph
+
+	int i;
+	for (i = 0; i < 11; i++) {
+		show(&G[i]);
+		nGraphFree(&G[i]);
+	}
+
 	return 0;
 }

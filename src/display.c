@@ -89,7 +89,7 @@ void exportDot(struct nGraph *B)
 void showDot(struct nGraph *B)
 {
 	static char template[] = "/tmp/nucesGraphXXXXXX";
-	char *filename = malloc(sizeof(char)*PATH_MAX);
+	char *filename  = malloc(sizeof(char)*PATH_MAX);
 	char *fileimage = malloc(sizeof(char)*PATH_MAX);
 	strcpy(filename, template);
 	if (mkstemp(filename)==-1) {
@@ -156,8 +156,9 @@ void showDot(struct nGraph *B)
 		printf("Source (dot) at: %s\nImage  (pdf) at: %s\n\n", filename, fileimage);
 		switch(B->displayType)
 		{
-			case 1: execl("/usr/bin/twopi", "/usr/bin/twopi", filename, "-T", "pdf", "-o", fileimage, NULL);
+			case 2: execl("/usr/bin/twopi", "/usr/bin/twopi", filename, "-T", "pdf", "-o", fileimage, NULL);
 							break;
+			case 1: execl("/usr/bin/sfdp", "/usr/bin/sfdp", filename, "-T", "pdf", "-o", fileimage, NULL);
 			default: execl("/usr/bin/neato", "/usr/bin/neato", filename, "-T", "pdf", "-o", fileimage, NULL);
 							 break;
 		}
@@ -174,10 +175,12 @@ void showDot(struct nGraph *B)
 		printf("i should not be printed\n");
 	}
 	else if (pid > 0) {
-		//wait(NULL);
+		//wait(NULL);      // for pausing main while pdf is displayed
 	}
-	//unlink(filename);
-	//unlink(fileimage);
+	//unlink(filename);  // for deleting dot file
+	//unlink(fileimage); // for deleting pdf file
+	free(filename);
+	free(fileimage);
 }
 
 void show(struct nGraph *B)
@@ -243,6 +246,12 @@ void listVertices(struct nGraph *G)
 	printf("}\n%s", KWHT);
 }
 
+/**
+ * Displays a List of Edges in a Graph. Output shows the Graph Label, followed
+ * by a list having format as: (Edge Id) vertex from, vertex to.
+ * @param Graph Object
+ */
+
 void listEdges(struct nGraph *G)
 {
 	struct edge *tmp = G->E->head;
@@ -250,20 +259,22 @@ void listEdges(struct nGraph *G)
 	int count = 0; 
 	while (tmp != NULL && G->E->count > 0) {
 		if (count == (G->E->count-1)) {
-			printf("%d->%d ", tmp->head, tmp->tail);
+			printf("(%d) %d->%d ", tmp->label, tmp->head, tmp->tail);
 		}
 		else {
-			printf("%d->%d, ", tmp->head, tmp->tail);
+			printf("(%d) %d->%d, ", tmp->label, tmp->head, tmp->tail);
 		}
 		tmp = tmp->next;
 		count++;
 	}
-	printf("}\n%s\n", KWHT);
+	printf("}\n%s", KWHT);
 }
 
 void setDisplayType(struct nGraph *G, char *type)
 {
 	if (strcmp(type, "circular") == 0) {
+		G->displayType = 2;
+	} else if (strcmp(type, "sfdp") == 0) {
 		G->displayType = 1;
 	} else {
 		G->displayType = 0;

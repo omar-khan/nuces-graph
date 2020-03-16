@@ -259,8 +259,8 @@ struct nGraph newBarabasiAlbert(char *lbl, struct nGraph *pattern, int M)
 }
 
 /**
- * Returns a hypercube of a given order. At the moment there is a buffer
- * overflow error for orders > 3.
+ * Returns a hypercube of a given order. Note: Viewing hypercubes of order 10
+ * and above using showDot() takes too much time. 
  * @param lbl Label for the Hypercube graph
  * @param order Order of the Hypercube graph
  * @return Graph object
@@ -268,14 +268,18 @@ struct nGraph newBarabasiAlbert(char *lbl, struct nGraph *pattern, int M)
 
 struct nGraph newHyperCube(char *lbl, int order)
 {
-	struct nGraph tmp = newPath(lbl, 2);
-	struct nGraph P2  = newPath(lbl, 2);
+	struct nGraph tmp[order];
+	              tmp[0] = newPath(lbl, 2);
+	struct nGraph P2     = newPath(lbl, 2);
 
 	int i;
 	for (i = 1; i < order; i++) {
-		tmp = crossProduct(&tmp, &P2);
+		tmp[i] = crossProduct(&tmp[i-1], &P2);
+		nGraphFree(&tmp[i-1]);
 	}
-	return tmp;
+
+	nGraphFree(&P2);
+	return tmp[i-1];
 }
 
 /**

@@ -17,6 +17,8 @@ const int colornumbers[20] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 void nGraphFree(struct nGraph *G) 
 {
 	while (G->V->count != 0) {
+		if (G->V->tail->lblString != NULL)
+			free(G->V->tail->lblString);
 		removeVertexPopLast(G);
 	}
 	
@@ -24,9 +26,12 @@ void nGraphFree(struct nGraph *G)
 		removeEdgePopLast(G);
 	}
 
+	free(G->label);
 	free(G->V);
 	free(G->E);
-	free(G->label);
+
+	if (G->adjacency_matrix != NULL) free(G->adjacency_matrix);
+	if (G->incidence_matrix != NULL) free(G->incidence_matrix);
 }
 
 /** 
@@ -56,8 +61,8 @@ void nGraphInit(struct nGraph *G, char *t)
 	G->V->count = 0;
 	G->E = calloc(1,sizeof(struct edgList));//malloc(sizeof(struct edgList));
 	G->E->count = 0;
-	G->label = calloc(10,sizeof(char));//malloc(sizeof(char)*10);
-	strcpy(G->label, t);
+	G->label = calloc(strlen(t)+1,sizeof(char));//malloc(sizeof(char)*10);
+	strncpy(G->label, t, sizeof(char)*strlen(t));
 	G->V->deg_info.degree_histogram_in  = NULL;
 	G->V->deg_info.degree_histogram_out = NULL;
 	G->adjacency_matrix        = NULL;
@@ -296,8 +301,7 @@ int directedEdgeExists(struct nGraph *G, int head, int tail)
  */
 int edgeExists(struct nGraph *G, int head, int tail) 
 {
-	struct edge *tmp = malloc(sizeof(struct edge));
-	tmp = G->E->head;
+	struct edge *tmp = G->E->head;
 	while (tmp != NULL) {
 		if (((tmp->head == head && tmp->tail == tail) || 
 		     (tmp->head == head && tmp->tail == head)) ||
@@ -419,7 +423,7 @@ void addEdge(struct nGraph *G, int head, int tail, int weight)
 		}
 		if (!edgeExists(G, head, tail)) {
 			struct edge *tmp = malloc(sizeof(struct edge));
-			tmp->label    = G->E->count;
+			tmp->label    = G->E->count; // may be problematic if edges removed.
 			tmp->weight   = weight;
 			tmp->head     = head;
 			tmp->tail     = tail;
@@ -462,7 +466,7 @@ void copyGraphDuplicateOK(struct nGraph *dest, struct nGraph *src)
 }
 
 void copyGraph(struct nGraph *dest, struct nGraph *src)
-{ 
+{
 	struct vertex *tmp = src->V->head;
 	while(tmp != NULL) {
 		addVertex(dest, tmp->label);
@@ -624,7 +628,6 @@ void removeEdge(struct nGraph *P, int c, int d)
 			if (pre == P->E->head) { // first link
 				pre = tmp->next;
 				P->E->head = pre;
-				printf("%d-%d\n", tmp->head, tmp->tail);
 			} else {
 				pre->next = tmp->next;
 			}
@@ -657,31 +660,93 @@ void removeEdges(struct nGraph *P, int c)
 
 	while(tmp != NULL) {
 		if (tmp->head == c || tmp->tail == c) {
-			if (tmp->prev == NULL) {
-				printf("%d in heat\n", c);
+			if (tmp->prev == NULL) { // first node
 				P->E->head = tmp->next;
 				P->E->head->prev = NULL;
 				P->E->count--;
+				updateVertexDegree(P, tmp->head, tmp->tail, 0, 0);
 				free(tmp);
 				tmp = P->E->head->next;
-			} else if (tmp->next == NULL) {
-				printf("%d in tail\n", c);
+			} else if (tmp->next == NULL) { // last node
 				P->E->tail = tmp->prev;
 				P->E->tail->next = NULL;
 				P->E->count--;
+				updateVertexDegree(P, tmp->head, tmp->tail, 0, 0);
 				free(tmp);
 				tmp = P->E->tail->next;
-			} else {
-				printf("%d in middle\n", c);
+			} else { // middle node
 				tmp2 = tmp;
 				tmp->prev->next = tmp->next;
 				tmp->next->prev = tmp->prev;
 				P->E->count--;
+				updateVertexDegree(P, tmp->head, tmp->tail, 0, 0);
 				tmp = tmp->next;
 				free(tmp2);
 			}
 		} else {
 			tmp = tmp->next;
+		}
+	}
+}
+
+void removeSpecificEdge(struct nGraph *G, struct edge *e)
+{
+	if (e->prev == NULL && e->next != NULL) { // implies start vertex
+		
+	} else if (e->prev != NULL && e->next == NULL) { // implies last vertex
+	} else { // implies middle vertex
+	}
+}
+
+/**
+ * Prunes a graph by clipping away some edges with given Probability. 
+ * @param G Graph object
+ * @param P Probability
+ */
+
+void removeRandomEdges(struct nGraph *G, double P)
+{
+	if (G->E->count == 0) return;
+	else if (G->E->count == 1) {
+		free(G->E->head);
+		G->E->head = NULL;
+		return;
+	} else {
+		struct edge *tmp = G->E->head;
+		struct edge *pre = NULL;
+		double rnd;
+		while (tmp != NULL) {
+			printf("%d ", tmp->label);
+			rnd = rand()/(double)RAND_MAX;
+			if (rnd <= P) { // removal
+				if (tmp == G->E->head) { // first node
+					G->E->head = tmp->next;
+					G->E->count--;
+					updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
+					free(tmp);
+					tmp = G->E->head;
+					tmp->prev = NULL;
+					tmp = tmp->next;
+				} else if (tmp == G->E->tail) { // last node
+					G->E->tail = tmp->prev;
+					G->E->count--;
+					updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
+					free(tmp);
+					tmp = G->E->tail;
+					tmp->next = NULL;
+					tmp = tmp->next;
+				} else { // middle node
+					tmp->prev->next = tmp->next;
+					tmp->next->prev = tmp->prev;
+					pre = tmp;
+					G->E->count--;
+					updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
+					tmp = tmp->next;
+					free(pre);
+				}
+			} else { // no removal
+				tmp = tmp->next;
+			}
 		}
 	}
 }

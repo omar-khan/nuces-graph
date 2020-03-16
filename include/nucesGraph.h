@@ -99,6 +99,7 @@ void removeEdge(struct nGraph *, int, int);
 void removeVertex(struct nGraph *, int);
 void removeVertexPopLast(struct nGraph *);
 void removeEdgePopLast(struct nGraph *);
+void removeRandomEdges(struct nGraph *, double);
 void copyGraphDuplicateOK(struct nGraph *, struct nGraph *);
 void copyGraph(struct nGraph *, struct nGraph *);
 void copyVertices(struct nGraph *, struct nGraph *);

@@ -4,43 +4,73 @@
 #include <stdlib.h>
 #include "nucesGraph.h"
 
+/**
+ * Perform a Cross Product of two graphs \f$G_{3} = G_{1} \times G_{2}\f$. The
+ * label of the graph \f$G_{3}\f$ reflects label elements of both \f$G_{1}\f$
+ * and \f$G_{2}\f$. Likewise, the label of vertices of graph \f$G_{3}\f$
+ * reflects adjacency of vertices of \f$G_{1}\f$ with those of \f$G_{2}\f$.
+ * @param G1 Graph Object 1
+ * @param G2 Graph Object 2
+ * @return Graph Object 3
+ */
 struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 {
-	struct nGraph tmp = newGraph(strcat(strcat(G1->label, "x"), G2->label));
+	/* Cross the Graph Labels */
+	int newLabelSize  = strlen(G1->label)+strlen(G2->label)+2;
+	char *newLabel = calloc(newLabelSize, sizeof(char));
+	strncat(newLabel, G1->label, sizeof(char)*strlen(G1->label));
+	strncat(newLabel, "x", sizeof(char));
+	strncat(newLabel, G2->label, sizeof(char)*strlen(G2->label));
+	struct nGraph tmp = newGraph(newLabel);
+	free(newLabel);
 
+	/* Convert integer vertex labels to string vertex labels */
 	struct vertex *utmp = G1->V->head;
+	int size;
 	while(utmp != NULL) {
 		if (utmp->lblString == NULL) {
-			utmp->lblString = malloc(sizeof(char)*(int)ceil(log(utmp->label == 0 ? utmp->label+2 : utmp->label+1)/(double)log(10)));
-			sprintf(utmp->lblString, "%d", utmp->label);
+			size = (int)ceil(log(utmp->label == 0 ? utmp->label + 2 : utmp->label + 1)/log(10))+1;
+			utmp->lblString = malloc(sizeof(char)*size);
+			snprintf(utmp->lblString, sizeof(char)*size, "%d", utmp->label);
 		}
 		utmp = utmp->next;
 	}
+
+	/* Convert integer vertex labels to string vertex labels */
 	struct vertex *vtmp = G2->V->head;
 	while(vtmp != NULL) {
 		if (vtmp->lblString == NULL) {
-			vtmp->lblString = malloc(sizeof(char)*(int)ceil(log(vtmp->label == 0 ? vtmp->label+2 : vtmp->label+1)/(double)log(10)));
-			sprintf(vtmp->lblString, "%d", vtmp->label);
+			size = (int)ceil(log(vtmp->label == 0 ? vtmp->label + 2 : vtmp->label + 1)/log(10))+1;
+			vtmp->lblString = malloc(sizeof(char)*size);
+			snprintf(vtmp->lblString, sizeof(char)*size, "%d", vtmp->label);
 		}
 		vtmp = vtmp->next;
 	}
 
+	/* Add Vertices */
 	utmp = G1->V->head;
 	while (utmp != NULL) {
 		vtmp = G2->V->head;
 		while (vtmp != NULL) {
 
 			addVertex(&tmp, tmp.V->count);
-			tmp.V->tail->lblString = malloc(sizeof(char)*((int)(strlen(utmp->lblString)+strlen(vtmp->lblString)+strlen(","))));
-			strcpy(tmp.V->tail->lblString, utmp->lblString);
-			strcpy(tmp.V->tail->lblString, strcat(tmp.V->tail->lblString, ","));
-			strcpy(tmp.V->tail->lblString, strcat(tmp.V->tail->lblString, vtmp->lblString));
+			size = (int)(strlen(utmp->lblString)+strlen(vtmp->lblString)+strlen(","))+1;
+			tmp.V->tail->lblString = calloc(size, sizeof(char));//malloc(sizeof(char)*(size));
+			
+			strncpy(tmp.V->tail->lblString, utmp->lblString, sizeof(char)*(int)strlen(utmp->lblString));
+			strncat(tmp.V->tail->lblString, ",", sizeof(char));
+			strncat(tmp.V->tail->lblString, vtmp->lblString, sizeof(char)*(int)strlen(vtmp->lblString));
 
 			vtmp = vtmp->next;
 		}
 		utmp = utmp->next;
 	}
 
+	if (tmp.V->count > 512) {
+		setDisplayType(&tmp, "sfdp");
+	}
+
+	/* Add Edges, taking into account adjacency */
 	struct edge *edgeTmp = G1->E->head;
 	while (edgeTmp != NULL) {
 		addEdge(&tmp, edgeTmp->head, edgeTmp->tail, 0);
