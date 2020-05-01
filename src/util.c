@@ -703,30 +703,31 @@ void removeSpecificEdge(struct nGraph *G, struct edge *e)
  * @param G Graph object
  * @param P Probability
  */
-
 void removeRandomEdges(struct nGraph *G, double P)
 {
-	if (G->E->count == 0) return;
-	else if (G->E->count == 1) {
-		free(G->E->head);
-		G->E->head = NULL;
+	if (G->E->count == 0) {
 		return;
 	} else {
 		struct edge *tmp = G->E->head;
 		struct edge *pre = NULL;
 		double rnd;
 		while (tmp != NULL) {
-			printf("%d ", tmp->label);
 			rnd = rand()/(double)RAND_MAX;
 			if (rnd <= P) { // removal
 				if (tmp == G->E->head) { // first node
-					G->E->head = tmp->next;
-					G->E->count--;
-					updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
-					free(tmp);
-					tmp = G->E->head;
-					tmp->prev = NULL;
-					tmp = tmp->next;
+					if (G->E->count == 1) {
+						updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
+						G->E->count--;
+						free(tmp);
+						G->E->head = G->E->tail = tmp = NULL;
+					} else {
+						G->E->head = tmp->next;
+						G->E->head->prev = NULL;
+						G->E->count--;
+						updateVertexDegree(G, tmp->head, tmp->tail, 0, 0);
+						free(tmp);
+						tmp = G->E->head;
+					}
 				} else if (tmp == G->E->tail) { // last node
 					G->E->tail = tmp->prev;
 					G->E->count--;
@@ -840,6 +841,9 @@ void adjacencyMatrix(struct nGraph *G)
 	}
 
 	G->adjacency_matrix = calloc(G->V->count*G->V->count, sizeof(int));
+
+	if (G->V->tail->label != G->V->count-1) {
+	}
 
 	struct edge *tmp = G->E->head;
 	while (tmp != NULL) {

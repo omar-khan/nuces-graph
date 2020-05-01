@@ -50,7 +50,7 @@ double jaccardCoefficient(struct nGraph *G, int u, int v)
 	struct nGraph neighIntersection = gIntersection(&neighOne, &neighTwo);
 	struct nGraph neighUnion        = gUnion(&neighOne, &neighTwo);
 
-	return (neighIntersection.V->count/(double)neighUnion.V->count);
+	return (neighUnion.V->count == 0 ? 0 : neighIntersection.V->count/(double)neighUnion.V->count);
 }
 
 /**
