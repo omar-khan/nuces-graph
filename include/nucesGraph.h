@@ -114,6 +114,7 @@ void exportDot(struct nGraph *);
 void showDimac(struct nGraph *);
 void exportDimac(struct nGraph *);
 void makeDimac(struct nGraph *, char *);
+void exportGLPK(struct nGraph *);
 void listVerticesAlphabet(struct nGraph *);
 void listVertices(struct nGraph *);
 void listBK_temp(struct nGraph *);

@@ -5,16 +5,18 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <sys/wait.h>
+#include <glpk.h>
 #include "nucesGraph.h"
 
 /** Exports a Graph in DIMAC format to a file. Output is written to G.dimac
- * where G is the graph label.
+ * where G is the graph label. At the moment, only network flow graphs are
+ * supported.
  * @param G Graph object
  * @param file Filename
  */
 void exportDimac(struct nGraph *G)
 {
-	char *s = malloc(sizeof(char)*1024);
+	char *s = malloc(sizeof(char)*(G->E->count*8+64));
 	makeDimac(G, s);
 
 	char *filename = malloc(sizeof(char)*128);
@@ -32,15 +34,68 @@ void makeDimac(struct nGraph *G, char *contents)
 
 	struct edge   *tmp = G->E->head;
 
-	sprintf(returnString, "p edge %d %d\n", G->V->count, G->E->count);
+	sprintf(returnString, "p max %d %d\n", G->V->count, G->E->count);
+	strcat(contents, returnString);
+
+	sprintf(returnString, "n %d s\n", 1);
+	strcat(contents, returnString);
+
+	sprintf(returnString, "n %d t\n", G->V->count);
 	strcat(contents, returnString);
 
 	while (tmp != NULL && G->E->count > 0) {
-		sprintf(returnString, "e %d %d\n", tmp->head, tmp->tail);
+		if (tmp->directed == 1) {
+			sprintf(returnString, "a %d %d %d\n", tmp->head, tmp->tail, tmp->weight);
+		} else {
+			sprintf(returnString, "p %d %d\n",    tmp->head, tmp->tail);
+		}
 		strcat(contents, returnString);
 		tmp = tmp->next;
 	}
 }
+
+/** Exports GLPK Compatible Linear Program for solving maxflow problems
+ * @param G Graph object
+ */
+void exportGLPK(struct nGraph *G)
+{
+ // Conversion is not direct. First Dimac output is created. Then that Dimac
+ // output is again plugged into the GLPK API to create GLPK compatible LP code
+ 
+	char *code = malloc(sizeof(char)*(G->E->count*8+64));
+	makeDimac(G, code);
+
+	char *filename   = malloc(sizeof(char)*128);
+	char *filenamelp = malloc(sizeof(char)*128);
+	strcpy(filename, "/tmp/");
+	strcpy(filenamelp, "/tmp/");
+
+	strcat(filename, G->label);
+	strcat(filenamelp, G->label);
+
+	strcat(filename, ".dimac");
+	strcat(filenamelp, ".lp");
+
+	FILE *fd = fopen(filename, "w");
+	fprintf(fd, code);
+	fclose(fd);
+	fprintf(stdout, "Dimac Output written to %s\n", filename);
+
+	glp_prob *lp;
+	int s, t;
+	glp_graph *g = glp_create_graph(0, sizeof(double));
+	glp_read_maxflow(g, &s, &t, 0, filename);
+	lp = glp_create_prob();
+	glp_maxflow_lp(lp, g, GLP_ON, s, t, 0);
+	glp_delete_graph(g);
+	glp_write_lp(lp, NULL, filenamelp);
+	glp_delete_prob(lp);
+
+	//unlink(filename);  // for deleting dot file
+	free(filename);
+	free(filenamelp);
+}
+
 
 /** Shows a Graph in DIMAC format. Can be manually copied pasted from the
  * terminal.

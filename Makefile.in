@@ -3,7 +3,8 @@ CC=gcc
 CFLAGS=-Wall -Werror -fPIC -O3
 INCLUDE=-I$(ROOT_DIR)/include
 LIBRARY=-L$(ROOT_DIR)/lib
-LDFLAGSLIB=-lNucesGraph -lm
+LDFLAGS=-lm
+LDFLAGSLIB=-lglpk -lNucesGraph
 
 SRCSSRC = $(wildcard src/*.c)
 SRCSTEST = $(wildcard tests/*.c)
