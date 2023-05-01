@@ -42,8 +42,11 @@ void nGraphFree(struct nGraph *G)
 
 void graphChangeLabel(struct nGraph *G, char *t)
 {
-	G->label = calloc(sizeof(t)/sizeof(char), sizeof(char));
+	free(G->label);
+	//G->label = calloc(sizeof(t)/sizeof(char), sizeof(char));
+	G->label = calloc(strlen(t)+1, sizeof(char));
 	strcpy(G->label, t);
+	strcat(G->label, "\0");
 }
 
 /** 
@@ -62,7 +65,10 @@ void nGraphInit(struct nGraph *G, char *t)
 	G->E = calloc(1,sizeof(struct edgList));//malloc(sizeof(struct edgList));
 	G->E->count = 0;
 	G->label = calloc(strlen(t)+1,sizeof(char));//malloc(sizeof(char)*10);
-	strncpy(G->label, t, sizeof(char)*strlen(t));
+	strcpy(G->label, t);
+	strcat(G->label, "\0");
+	//strncpy(G->label, t, sizeof(char)*strlen(t));
+	
 	G->V->deg_info.degree_histogram_in  = NULL;
 	G->V->deg_info.degree_histogram_out = NULL;
 	G->adjacency_matrix        = NULL;

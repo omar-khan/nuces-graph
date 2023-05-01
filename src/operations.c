@@ -16,11 +16,12 @@
 struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 {
 	/* Cross the Graph Labels */
-	int newLabelSize  = strlen(G1->label)+strlen(G2->label)+2;
+	int newLabelSize = strlen(G1->label) + strlen(G2->label) + 2;
 	char *newLabel = calloc(newLabelSize, sizeof(char));
-	strncat(newLabel, G1->label, sizeof(char)*strlen(G1->label));
-	strncat(newLabel, "x", sizeof(char));
-	strncat(newLabel, G2->label, sizeof(char)*strlen(G2->label));
+	strncat(newLabel, G1->label, strnlen(G1->label, newLabelSize-strlen(newLabel)-1));
+	strcat(newLabel, "x");
+	strncat(newLabel, G2->label, strnlen(G2->label, newLabelSize-strlen(newLabel)-1));
+	strncat(newLabel, "\0", sizeof(char));
 	struct nGraph tmp = newGraph(newLabel);
 	free(newLabel);
 
@@ -56,10 +57,12 @@ struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 			addVertex(&tmp, tmp.V->count);
 			size = (int)(strlen(utmp->lblString)+strlen(vtmp->lblString)+strlen(","))+1;
 			tmp.V->tail->lblString = calloc(size, sizeof(char));//malloc(sizeof(char)*(size));
-			
-			strncpy(tmp.V->tail->lblString, utmp->lblString, sizeof(char)*(int)strlen(utmp->lblString));
-			strncat(tmp.V->tail->lblString, ",", sizeof(char));
-			strncat(tmp.V->tail->lblString, vtmp->lblString, sizeof(char)*(int)strlen(vtmp->lblString));
+			strncat(tmp.V->tail->lblString, utmp->lblString, strnlen(utmp->lblString, size-strlen(tmp.V->tail->lblString)-1));
+			strcat(tmp.V->tail->lblString, ",");
+			strncat(tmp.V->tail->lblString, vtmp->lblString, strnlen(vtmp->lblString, size-strlen(tmp.V->tail->lblString)-1));
+			//strncpy(tmp.V->tail->lblString, utmp->lblString, sizeof(char)*(int)strlen(utmp->lblString));
+			//strcat(tmp.V->tail->lblString, ",");
+			//strncat(tmp.V->tail->lblString, vtmp->lblString, sizeof(char)*(int)strlen(vtmp->lblString));
 
 			vtmp = vtmp->next;
 		}
