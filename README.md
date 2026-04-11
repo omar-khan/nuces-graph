@@ -9,11 +9,11 @@ Sciences (NUCES), Peshawar, Pakistan*.
 
 ### Installation
 
-For compilation of the library, run `./configure.sh`, followed by `make`. This
+For compilation of the library, run `./autogen.sh`, `./configure.sh`, followed by `make`. This
 will add relevant linking files to the *lib* folder.
 
 For compilation of tests included in the library, run `make tests`, which are
-then accessible in the *tests* folder. 
+then accessible in the *tests* folder. For compilation of API documentation, run `make docs` 
 
 For a system-wide installation, run `make install` with super user privileges.
 The installation defaults to */usr/local/lib* for linking files, and
@@ -22,7 +22,7 @@ the new location to configure script as `./configure.sh --prefix=/new/location`.
 
 Lastly, configure the `LD_LIBRARY_PATH` environment variable to point to the
 installation location. Otherwise, you have to specify this location every time
-you run your code. 
+you run your code.
 
 ### Example Usage
 
