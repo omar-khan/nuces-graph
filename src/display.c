@@ -224,13 +224,15 @@ void showDot(struct nGraph *B)
 	}
 
 	// launch window (okular)
-	pid = fork();
-	if (pid == 0) {
-		execl("/usr/bin/okular", "/usr/bin/okular", fileimage, NULL);
-		printf("i should not be printed\n");
-	}
-	else if (pid > 0) {
-		//wait(NULL);      // for pausing main while pdf is displayed
+	if (getenv("DISPLAY")) {
+		pid = fork();
+		if (pid == 0) {
+			execl("/usr/bin/okular", "/usr/bin/okular", fileimage, NULL);
+			printf("i should not be printed\n");
+		}
+		else if (pid > 0) {
+			//wait(NULL);      // for pausing main while pdf is displayed
+		}
 	}
 	//unlink(filename);  // for deleting dot file
 	//unlink(fileimage); // for deleting pdf file

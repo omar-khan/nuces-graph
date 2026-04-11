@@ -32,6 +32,7 @@ void nGraphFree(struct nGraph *G)
 
 	if (G->adjacency_matrix != NULL) free(G->adjacency_matrix);
 	if (G->incidence_matrix != NULL) free(G->incidence_matrix);
+	if (G->laplacian_matrix != NULL) free(G->laplacian_matrix);
 }
 
 /** 
@@ -73,6 +74,7 @@ void nGraphInit(struct nGraph *G, char *t)
 	G->V->deg_info.degree_histogram_out = NULL;
 	G->adjacency_matrix        = NULL;
 	G->incidence_matrix        = NULL;
+	G->laplacian_matrix        = NULL;
 }
 
 /**
@@ -909,6 +911,60 @@ void incidenceMatrix(struct nGraph *G)
 		printf("\t");
 		for (i = 0; i < G->V->count; i++) {
 			printf("%d ", G->incidence_matrix[j*G->V->count+i]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+/**
+ * Generate the Laplacian matrix for a graph. L = D - A.
+ * @param G Graph object
+ */
+
+void laplacianMatrix(struct nGraph *G)
+{
+	int i, j;
+	if (G->laplacian_matrix != NULL) {
+		free(G->laplacian_matrix);
+	}
+
+	G->laplacian_matrix = calloc(G->V->count * G->V->count, sizeof(double));
+
+	// Compute Adjacency Matrix first if not present
+	if (G->adjacency_matrix == NULL) {
+		adjacencyMatrix(G);
+	}
+
+	for (i = 0; i < G->V->count; i++) {
+		int degree = 0;
+		for (j = 0; j < G->V->count; j++) {
+			if (G->adjacency_matrix[i * G->V->count + j]) {
+				G->laplacian_matrix[i * G->V->count + j] = -1.0;
+				degree++;
+			}
+		}
+		G->laplacian_matrix[i * G->V->count + i] = (double)degree;
+	}
+}
+
+/**
+ * Prints the Laplacian matrix.
+ * @param G Graph object
+ */
+
+void printLaplacianMatrix(struct nGraph *G)
+{
+	int i, j;
+	if (G->laplacian_matrix == NULL) {
+		laplacianMatrix(G);
+	}
+
+	printf("L(%s):\n", G->label);
+	for (i = 0; i < G->V->count; i++) {
+		printf("\t");
+		for (j = 0; j < G->V->count; j++) {
+			printf("%4.1f ", G->laplacian_matrix[i * G->V->count + j]);
 		}
 		printf("\n");
 	}

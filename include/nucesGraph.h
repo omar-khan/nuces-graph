@@ -81,6 +81,7 @@ typedef struct nGraph
 	int displayType;
 	int *adjacency_matrix;
 	int *incidence_matrix;
+	double *laplacian_matrix;
 } nGraph;
 
 // Basic Signatures
@@ -106,6 +107,13 @@ void copyVertices(struct nGraph *, struct nGraph *);
 void nGraphFree(struct nGraph *);
 void adjacencyMatrix(struct nGraph *);
 void incidenceMatrix(struct nGraph *);
+void laplacianMatrix(struct nGraph *);
+void printLaplacianMatrix(struct nGraph *);
+
+// Matrix Utilities
+void matrix_vector_multiply(struct nGraph *, double *, double *);
+void power_method(struct nGraph *, double *);
+void qr_decomposition(struct nGraph *, double *, double *);
 
 // Display related
 void show(struct nGraph *);
