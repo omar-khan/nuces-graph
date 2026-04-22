@@ -12,6 +12,57 @@
 #include "nucesGraph.h"
 
 /**
+ * Constructs a random binary tree
+ * @param C Label for the tree
+ * @param V Number of vertices required in the tree
+ * @return Graph object
+ */
+struct nGraph newRandomBinaryTree(char *C, int V) {
+	struct nGraph tmp = newGraph(C);
+	struct nGraph NotDone = newGraph("N");
+
+	int *childrenCount = calloc(V, sizeof(int));
+	int *doneNodes = malloc(V * sizeof(int));
+	int doneCount = 0;
+
+	for (int i = 0; i < V; i++) {
+		addVertex(&NotDone, i);
+	}
+	srand(time(0));
+
+	int root = rand() % V; // Random Root
+  addVertex(&tmp, root);
+	setVertexLabel(&tmp, root, "R");
+  removeVertex(&NotDone, root);
+  
+	doneNodes[doneCount++] = root;
+
+	while (doneCount < V) {
+		int v;
+		do {
+			v = rand() % V; // Random Vertice not in Tree Yet
+		} while (searchVertex(&tmp, v));
+
+		int parentIdx;
+		int parent;
+		do { // Random parent from tree with < 2 children
+			parentIdx = rand() % doneCount;
+			parent = doneNodes[parentIdx];
+		} while (childrenCount[parent] >= 2);
+
+		addVertex(&tmp, v);
+		addEdge(&tmp, parent, v, 0);
+
+		childrenCount[parent]++;
+		doneNodes[doneCount++] = v;
+	}
+
+	free(childrenCount);
+	free(doneNodes);
+	return tmp;
+}
+
+/**
  * Constructs a random tree.
  * @param C Label for the tree
  * @param V Number of vertices required in the tree

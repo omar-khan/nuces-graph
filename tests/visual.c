@@ -20,6 +20,11 @@ int main(int argc, char *argv[])
 	incidenceMatrix(&G);
 
 	exportDimac(&G);
+	exportTikZ(&G);
+	exportGraphML(&G);
+
+	nGraph P = newPetersenGraph("P");
+	exportTikZ(&P);
 
 	return 0;
 }

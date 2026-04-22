@@ -93,6 +93,7 @@ void copyVertexLabel(struct nGraph *, int, char *);
 void graphChangeLabel(struct nGraph *, char *);
 void addVertexDuplicateOK(struct nGraph *, int);
 void addEdgeLabel(struct nGraph *, char *, char *, int);
+void addEdgeDirectedLabel(struct nGraph *, char *, char *, int);
 void addEdgeDirected(struct nGraph *, int, int, int);
 void addEdge(struct nGraph *, int, int, int);
 void addRandomEdge(struct nGraph *, int);
@@ -123,6 +124,8 @@ void showDimac(struct nGraph *);
 void exportDimac(struct nGraph *);
 void makeDimac(struct nGraph *, char *);
 void exportGLPK(struct nGraph *);
+void exportTikZ(struct nGraph *);
+void exportGraphML(struct nGraph *);
 void listVerticesAlphabet(struct nGraph *);
 void listVertices(struct nGraph *);
 void listBK_temp(struct nGraph *);
@@ -160,6 +163,7 @@ double adamicAdarIndex(struct nGraph *, int, int);
 
 // Generate
 struct nGraph newRandomTree(char *, int);
+struct nGraph newRandomBinaryTree(char *, int);
 struct nGraph newCompleteGraph(char *, int);
 struct nGraph newPath(char *, int);
 struct nGraph newRing(char *, int);

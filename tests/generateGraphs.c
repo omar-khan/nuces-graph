@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
 {
 	struct nGraph G[11];
 
+#if 0
 	G[0]  = newStar("S", 5);                 // Star Graph
 	G[1]  = newCompleteGraph("B", 3);        // Complete Graph
 	G[2]  = newPath("P", 3);                 // Path Graph
@@ -24,6 +25,14 @@ int main(int argc, char *argv[])
 	for (i = 0; i < 11; i++) {
 		show(&G[i]);
 	}
+
+	struct nGraph G2 = newRandomTree("O", 10);
+	showDot(&G2);
+#endif
+
+	struct nGraph G3 = newRandomBinaryTree("B", 65536);
+	setDisplayType(&G3, "dot");
+	showDot(&G3);
 
 //for (i = 0; i < 11; i++) {
 //		nGraphFree(&G[i]);

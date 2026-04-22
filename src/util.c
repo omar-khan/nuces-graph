@@ -379,6 +379,28 @@ void addEdgeLabel(struct nGraph *G, char *head, char *tail, int weight)
 	}
 }
 
+void addEdgeDirectedLabel(struct nGraph *G, char *head, char *tail, int weight)
+{
+	if (strcmp(head, tail) != 0) {
+		int h, t;
+		if (!searchVertexLabel(G, head)) {
+			printf("invalid vertex %s in edge %s->%s\n", head, head, tail);
+			return;
+		} 
+		else {
+			h = getVertexLabel(G, head);
+		}
+		if (!searchVertexLabel(G, tail)) {
+			printf("invalid vertex %s in edge %s->%s\n", tail, head, tail);
+			return; 
+		}
+		else {
+			t = getVertexLabel(G, tail);
+		}
+		addEdgeDirected(G, h, t, weight);
+	}
+}
+
 void addEdgeDirected(struct nGraph *G, int head, int tail, int weight)
 {
 	if (head != tail) {
