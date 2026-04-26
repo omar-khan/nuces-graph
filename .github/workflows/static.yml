@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # IMPORTANT: Point this to the output folder Doxygen created
-          path: 'html'
+          path: 'docs/html'
 
       - name: Deploy to GitHub Pages
         id: deployment
