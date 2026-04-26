@@ -1,7 +1,15 @@
 /**
+ * @mainpage NUCES-Graph API
+ *
  * @file nucesGraph.h
  * @author Omar Usman Khan
- * @brief Header file linking everything together in the library
+ * @see Full API documentation at: https://omar-khan.github.io/NUCES-Graph/
+ * @section intro_sec Introduction
+ * NUCES Graph is a simple C based library that can be used to analyze small to
+ * medium sized graph networks. The code in the library is continuously improved
+ * and developed by students (as a learning effort) taking the course CS629
+ * Networks & Graph Theory at the National University of Computer and Emerging
+ * Sciences (NUCES), Peshawar, Pakistan.
  */
 
 #ifndef NUCESGRAPH_H

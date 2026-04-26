@@ -7,6 +7,8 @@ and developed by students (as a learning effort) taking the course *CS629
 Networks & Graph Theory* at the *National University of Computer and Emerging
 Sciences (NUCES), Peshawar, Pakistan*.
 
+[![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](https://omar-khan.github.io/NUCES-Graph/)
+
 ### Installation
 
 For compilation of the library, run `./autogen.sh`, `./configure.sh`, followed by `make`. This
