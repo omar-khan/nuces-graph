@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 struct CursorList {
   CXCursor cursors[128];
   int count;
@@ -82,8 +80,9 @@ void merge_tails(struct CallGraphBuilder *builder, int *other_tails,
   }
 }
 
-void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
-  enum CXCursorKind kind = clang_getCursorKind(cursor);
+void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) 
+{
+  enum CXCursorKind kind     = clang_getCursorKind(cursor);
   struct CursorList children = get_children(cursor);
 
   if (kind == CXCursor_CompoundStmt) {
@@ -133,8 +132,9 @@ void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
     merge_tails(builder, then_tails, then_count);
     merge_tails(builder, else_tails, else_count);
 
-  } else if (kind == CXCursor_ForStmt || kind == CXCursor_WhileStmt ||
-             kind == CXCursor_DoStmt) {
+  } else if (kind == CXCursor_ForStmt 
+						 || kind == CXCursor_WhileStmt 
+						 || kind == CXCursor_DoStmt) {
     int loop_id = clang_hashCursor(cursor) % 10000000;
     addVertex(&builder->CFG, loop_id);
 
@@ -160,7 +160,6 @@ void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
              kind == CXCursor_BinaryOperator ||
              kind == CXCursor_UnaryOperator || kind == CXCursor_ReturnStmt) {
 
-    // UNIQUE NODE ID - Use clang_hashCursor to guarantee unique nodes for pure CFG behavior.
     int node_id = clang_hashCursor(cursor) % 10000000;
 
     char label[256];
@@ -170,8 +169,7 @@ void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
       unsigned line;
       clang_getSpellingLocation(loc, NULL, &line, NULL, NULL);
       
-      // Append line number so it's clear these are distinct call sites, not merged functions
-      snprintf(label, sizeof(label), "Call: %s (L%u)", clang_getCString(spelling), line);
+			snprintf(label, sizeof(label), "Call: %s (L%u)", clang_getCString(spelling), line); // Line number
       clang_disposeString(spelling);
     } else if (kind == CXCursor_DeclStmt) {
       snprintf(label, sizeof(label), "Decl");
@@ -185,7 +183,7 @@ void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
 
     link_tails(builder, node_id);
 
-    // HYBRID EDGE: If this is an internal function call, draw an edge to the function's entry node
+    // For internal function call, draw edge to entry node
     if (kind == CXCursor_CallExpr) {
       CXCursor referenced = clang_getCursorReferenced(cursor);
       CXSourceLocation ref_loc = clang_getCursorLocation(referenced);
@@ -193,12 +191,10 @@ void analyze_cfg_node(CXCursor cursor, struct CallGraphBuilder *builder) {
         CXString spelling = clang_getCursorSpelling(cursor);
         const char *func_name = clang_getCString(spelling);
         int func_id = hash_string(func_name) % 10000000;
-        
-        // Ensure the function entry vertex exists (in case it hasn't been parsed yet)
-        addVertex(&builder->CFG, func_id);
+
+				addVertex(&builder->CFG, func_id);
         setVertexLabel(&builder->CFG, func_id, (char*)func_name);
-        
-        // Draw the hybrid call edge
+
         addEdgeDirected(&builder->CFG, node_id, func_id, 1);
         clang_disposeString(spelling);
       }
@@ -228,7 +224,7 @@ enum CXChildVisitResult dfg_visitor(CXCursor cursor, CXCursor parent,
     }
     clang_disposeString(spelling);
   } else if (kind == CXCursor_DeclRefExpr) {
-    // Ensure this is a variable reference and not a function call reference
+    // Ensure a variable reference and not a function call reference
     CXCursor referenced = clang_getCursorReferenced(cursor);
     enum CXCursorKind refKind = clang_getCursorKind(referenced);
 
@@ -253,20 +249,19 @@ enum CXChildVisitResult dfg_visitor(CXCursor cursor, CXCursor parent,
   return CXChildVisit_Recurse;
 }
 
-enum CXChildVisitResult cfg_visitor(CXCursor cursor, CXCursor parent,
-                                    CXClientData client_data) {
+enum CXChildVisitResult cfg_visitor(CXCursor cursor, CXCursor parent, CXClientData client_data) 
+{
   struct CallGraphBuilder *builder = (struct CallGraphBuilder *)client_data;
+  CXSourceLocation        loc      = clang_getCursorLocation(cursor);
 
-  CXSourceLocation loc = clang_getCursorLocation(cursor);
   if (!clang_Location_isFromMainFile(loc)) {
     return CXChildVisit_Continue;
   }
 
-  if (clang_getCursorKind(cursor) == CXCursor_FunctionDecl) {
+  if (clang_getCursorKind(cursor) == CXCursor_FunctionDecl) { // A function
     CXString spelling = clang_getCursorSpelling(cursor);
     const char *name = clang_getCString(spelling);
 
-    // Functions maintain singleton identities as CFG Execution Roots
     int func_id = hash_string(name) % 10000000;
 
     addVertex(&builder->CFG, func_id);
@@ -285,6 +280,13 @@ enum CXChildVisitResult cfg_visitor(CXCursor cursor, CXCursor parent,
   return CXChildVisit_Continue;
 }
 
+/**
+ * Creates flow graphs from a given file containing source code. The flow graphs
+ * are created from clang. Clang Documentation followed from https://clang.llvm.org/doxygen/group__CINDEX.html
+ * @param ccode Source Code file
+ * @return builder object containing flows.
+ */
+
 struct CallGraphBuilder createFlowGraphs(char *ccode) 
 {
 	struct CallGraphBuilder builder;
@@ -302,7 +304,6 @@ struct CallGraphBuilder createFlowGraphs(char *ccode)
 
   CXCursor cursor = clang_getTranslationUnitCursor(unit);
 
-  // Execute Parallel Passes
   clang_visitChildren(cursor, cfg_visitor, &builder);
   clang_visitChildren(cursor, dfg_visitor, &builder);
 
