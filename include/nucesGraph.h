@@ -7,82 +7,81 @@
 #ifndef NUCESGRAPH_H
 #define NUCESGRAPH_H
 
-#define KNRM  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
+#define KNRM "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
 extern const char *colors[20];
-extern const int  colornumbers[20];
+extern const int colornumbers[20];
 
-struct degree_info
-{
-	int sum_in_degree;
-	int sum_out_degree;
-	int avg_in_degree;
-	int avg_out_degree;
-	int range_in;
-	int range_out;
-	int max_in_degree;
-	int min_in_degree;
-	int max_out_degree;
-	int min_out_degree;
-	int **degree_histogram_in;
-	int **degree_histogram_out;
+struct degree_info {
+  int sum_in_degree;
+  int sum_out_degree;
+  int avg_in_degree;
+  int avg_out_degree;
+  int range_in;
+  int range_out;
+  int max_in_degree;
+  int min_in_degree;
+  int max_out_degree;
+  int min_out_degree;
+  int **degree_histogram_in;
+  int **degree_histogram_out;
 };
 
-struct vertex
-{
-	int label;
-	char *lblString;
-	int color;
-	int eccentricity;
-	int degree_in;
-	int degree_out;
-	struct vertex *next;
-	struct vertex *prev;
+struct vertex {
+  int label;
+  char *lblString;
+  int color;
+  int eccentricity;
+  int degree_in;
+  int degree_out;
+  struct vertex *next;
+  struct vertex *prev;
 };
 
-struct edge 
-{
-	int label;
-	int weight;
-	int head;
-	int tail;
-	int directed;
-	struct edge *next;
-	struct edge *prev;
+struct edge {
+  int label;
+  int weight;
+  int head;
+  int tail;
+  int directed;
+  struct edge *next;
+  struct edge *prev;
 };
 
-struct verList
-{
-	int count;
-	struct vertex *head;
-	struct vertex *tail;
-	struct degree_info deg_info;
+struct verList {
+  int count;
+  struct vertex *head;
+  struct vertex *tail;
+  struct degree_info deg_info;
 };
 
-struct edgList
-{
-	int count;
-	struct edge *head;
-	struct edge *tail;
+struct edgList {
+  int count;
+  struct edge *head;
+  struct edge *tail;
 };
 
-typedef struct nGraph
-{
-	char *label;
-	struct verList *V;
-	struct edgList *E;
-	int directed;
-	int displayType;
-	int *adjacency_matrix;
-	int *incidence_matrix;
-	double *laplacian_matrix;
+typedef struct nGraph {
+  char *label;
+  struct verList *V;
+  struct edgList *E;
+  int directed;
+  int displayType;
+  int *adjacency_matrix;
+  int *incidence_matrix;
+  double *laplacian_matrix;
 } nGraph;
+
+typedef struct nGraphList {
+  struct nGraph G;
+  struct nGraphList *next;
+} nGraphList;
 
 // Basic Signatures
 struct nGraph newGraph(char *);
@@ -106,6 +105,7 @@ void copyGraphDuplicateOK(struct nGraph *, struct nGraph *);
 void copyGraph(struct nGraph *, struct nGraph *);
 void copyVertices(struct nGraph *, struct nGraph *);
 void nGraphFree(struct nGraph *);
+void nGraphListFree(struct nGraphList *list);
 void adjacencyMatrix(struct nGraph *);
 void incidenceMatrix(struct nGraph *);
 void laplacianMatrix(struct nGraph *);
@@ -132,14 +132,15 @@ void listBK_temp(struct nGraph *);
 void listEdges(struct nGraph *);
 void setDisplayType(struct nGraph *, char *);
 
-// Search 
+// Search
 int searchVertexLabel(struct nGraph *, char *);
 int searchVertex(struct nGraph *, int);
 int edgeExists(struct nGraph *, int, int);
 int searchVertexCount(struct nGraph *, int);
 void setVertexLabel(struct nGraph *, int, char *);
+char *getVertexLabelString(struct nGraph *, int);
 
-// Metrics and parameters 
+// Metrics and parameters
 int getVertexColor(struct nGraph *, int);
 int eccentricity(struct nGraph *, int);
 int getEdgeWeight(struct nGraph *, int, int);
@@ -150,7 +151,9 @@ void degreeHistogram(struct nGraph *);
 
 // Algorithms
 int shortestPathLength(struct nGraph *, int, int);
-void BronKerbosch(struct nGraph *, struct nGraph *, struct nGraph *, struct nGraph *);
+void BronKerbosch(struct nGraph *, struct nGraph *, struct nGraph *,
+                  struct nGraph *);
+struct nGraphList *BronKerboschMax(struct nGraph *G);
 
 // Subsets
 struct nGraph getVertices(struct nGraph *);
@@ -162,6 +165,8 @@ double jaccardCoefficient(struct nGraph *, int, int);
 double adamicAdarIndex(struct nGraph *, int, int);
 
 // Generate
+struct nGraph importDot(char *, char *);
+void makeGraphComplete(struct nGraph *);
 struct nGraph newRandomTree(char *, int);
 struct nGraph newRandomBinaryTree(char *, int);
 struct nGraph newCompleteGraph(char *, int);
@@ -182,7 +187,23 @@ struct nGraph gIntersection(struct nGraph *, struct nGraph *);
 struct nGraph crossProduct(struct nGraph *, struct nGraph *);
 struct nGraph gUnionVertex(struct nGraph *, int);
 
+// Domain Specific (Software Analysis)
+void analyzeGodObjects(struct nGraph *);
+void analyzeAllCoupling(struct nGraph *);
+void analyzeSpaghettiCode(struct nGraph *);
+void analyzeTightCoupling(struct nGraph *);
+void analyzeDeadCode(struct nGraph *);
+
 // Extra
-int factorial(int);
-int NcR(int, int);
+struct CallGraphBuilder {
+  struct nGraph CFG;
+  struct nGraph DFG;
+  int tails[32];
+  int tail_count;
+  int current_func_entry;
+};
+
+struct CallGraphBuilder createFlowGraphs(char *ccode);
+void clearFlowGraphs(struct CallGraphBuilder *b);
+
 #endif

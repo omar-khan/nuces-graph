@@ -1,5 +1,5 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = $(top_builddir)/src/libNucesGraph.la
+AM_CPPFLAGS = -I$(top_srcdir)/include $(LLVM_CFLAGS)
+LDADD = $(top_builddir)/src/libNucesGraph.la $(LLVM_LIBS)
 
 # Programs that are part of the test suite
 TEST_PROGS = \
@@ -14,8 +14,10 @@ TEST_PROGS = \
     visual
 
 # No-install programs (built only for testing)
-check_PROGRAMS = $(TEST_PROGS)
+check_PROGRAMS = $(TEST_PROGS) dotimport callgraph
 
+callgraph_SOURCES = callgraphs.c
+dotimport_SOURCES = dotimport.c
 binaryops_SOURCES = binaryops.c
 clique_SOURCES = clique.c
 eccentricity_SOURCES = eccentricity.c
@@ -25,6 +27,8 @@ shortestPath_SOURCES = shortestPath.c
 similarity_SOURCES = similarity.c
 spectral_SOURCES = spectral.c
 visual_SOURCES = visual.c
+
+callgraph_LDFLAGS = -Wl,-rpath,$(abs_top_builder)/lib
 
 # Custom tests target
 .PHONY: tests

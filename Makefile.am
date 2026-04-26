@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src tests examples/llvm_callgraph
+SUBDIRS = src tests
 
 # Headers to install
 include_HEADERS = include/nucesGraph.h

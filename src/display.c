@@ -28,6 +28,7 @@ void exportDimac(struct nGraph *G) {
 }
 
 void makeDimac(struct nGraph *G, char *contents) {
+  contents[0] = '\0';
   char *returnString = malloc(sizeof(char) * 128);
 
   struct edge *tmp = G->E->head;
@@ -59,7 +60,7 @@ void exportGLPK(struct nGraph *G) {
   // Conversion is not direct. First Dimac output is created. Then that Dimac
   // output is again plugged into the GLPK API to create GLPK compatible LP code
 
-  char *code = malloc(sizeof(char) * (G->E->count * 8 + 64));
+  char *code = calloc(G->E->count * 32 + 256, sizeof(char));
   makeDimac(G, code);
 
   char *filename = malloc(sizeof(char) * 128);
@@ -74,8 +75,10 @@ void exportGLPK(struct nGraph *G) {
   strcat(filenamelp, ".lp");
 
   FILE *fd = fopen(filename, "w");
-  fprintf(fd, code);
-  fclose(fd);
+  if (fd) {
+    fputs(code, fd);
+    fclose(fd);
+  }
   fprintf(stdout, "Dimac Output written to %s\n", filename);
 
   glp_prob *lp;
@@ -98,7 +101,7 @@ void exportGLPK(struct nGraph *G) {
  * @param G Graph object
  */
 void showDimac(struct nGraph *G) {
-  char *s = malloc(sizeof(char) * 1024);
+  char *s = calloc(1024, sizeof(char));
   makeDimac(G, s);
 
   printf("%s\n", s);
@@ -135,6 +138,24 @@ void exportDot(struct nGraph *B) {
   fprintf(stdout, "}\n");
 }
 
+/**
+ * Renders a graph $B$ using Graphviz and automatically opens it in a PDF
+ * viewer. If displayType of $B$ is set to 0 (which is default), an intelligent
+ * auto-configuration engine evaluates the graph's topology and selects the
+ * optimal layout algorithm and parameters. This is summarized as:
+ * - Massive graphs ($V > 500$): Use 'sfdp', overlaps allowed, straight lines
+ * (for performance).
+ * - Star/Hub graphs (Max Degree $\geq$ 20 or $\geq V/2$): Use 'twopi'
+ * (circular) layout.
+ * - Sparse directed graphs (Density $<$ 2.0): Use 'dot' for hierarchical flow.
+ * - Dense/Medium graphs (V $>$ 40 or Density $\geq$ 2.0): Uses 'sfdp' with
+ * scaled overlap removal.
+ * - Small graphs: Uses 'dot' (directed) or 'neato' (undirected) with curved
+ * splines.
+ *
+ * @param B Graph object
+ */
+
 void showDot(struct nGraph *B) {
   static char template[] = "/tmp/nucesGraphXXXXXX";
   char *filename = malloc(sizeof(char) * PATH_MAX);
@@ -149,8 +170,54 @@ void showDot(struct nGraph *B) {
   FILE *tf = fopen(filename, "w+");
   if (tf) {
     fprintf(tf, "digraph %s {\n", B->label);
-    fprintf(tf, "\toverlap = false;\n");
-    fprintf(tf, "\tsplines = \"curved\";\n");
+    int V = B->V->count;
+    int E = B->E->count;
+    double density = V > 0 ? (double)E / V : 0.0;
+    int maxDegree = 0;
+
+    struct vertex *tmpV_deg = B->V->head;
+    while (tmpV_deg != NULL) {
+      int deg = tmpV_deg->degree_in + tmpV_deg->degree_out;
+      if (deg > maxDegree)
+        maxDegree = deg;
+      tmpV_deg = tmpV_deg->next;
+    }
+
+    char *overlap = "false";
+    char *splines = "curved";
+
+    if (B->displayType == 0) {
+      if (V > 500) {
+        setDisplayType(B, "sfdp");
+        overlap = "true";
+        splines = "false";
+      } else if ((maxDegree >= 20 || (V > 0 && maxDegree >= V / 2)) && V > 5) {
+        setDisplayType(B, "circular");
+        overlap = "false";
+        splines = "line";
+      } else if (B->directed && density < 2.0) {
+        setDisplayType(B, "dot");
+        overlap = "false";
+        splines = "polyline";
+      } else if (V > 40 || density >= 2.0) {
+        setDisplayType(B, "sfdp");
+        overlap = "scale";
+        splines = "line";
+      } else {
+        if (B->directed)
+          setDisplayType(B, "dot");
+        else
+          setDisplayType(B, "neato");
+        overlap = "false";
+        splines = "curved";
+      }
+    }
+    fprintf(tf, "\tlabel=\"%s\";\n", B->label);
+    fprintf(tf, "\tlabelloc=\"t\";\n");
+    fprintf(tf, "\tfontsize=20;\n");
+
+    fprintf(tf, "\toverlap = %s;\n", overlap);
+    fprintf(tf, "\tsplines = \"%s\";\n", splines);
     fprintf(tf, "\tsep = 3;\n");
     fprintf(tf, "\tnode [shape=\"circle\"];\n");
 
@@ -200,9 +267,9 @@ void showDot(struct nGraph *B) {
   // convert to dot
   pid_t pid = fork();
   if (pid == 0) {
-    printf("Source (dot) at: %s\nImage  (pdf) at: %s\n\n", filename, fileimage);
+    printf("Source (dot) at: %s\nImage  (pdf) at: %s\nRender Display Type: %s\n\n", filename, fileimage, B->displayType == 3 ? "dot" : (B->displayType == 2 ? "twopi" : (B->displayType == 1 ? "sfdp" : "neato")));
     switch (B->displayType) {
-		case 3: 
+    case 3:
       execl("/usr/bin/dot", "/usr/bin/dot", filename, "-T", "pdf", "-o",
             fileimage, NULL);
       break;
@@ -267,7 +334,7 @@ void listBK_temp(struct nGraph *G) {
   int count = 0;
   while (tmp != NULL && G->V->count > 0) {
     if (tmp->lblString != NULL && strlen(tmp->lblString) > 0) {
-      printf("(%d) %s", tmp->label, tmp->lblString);
+      printf("%s", tmp->lblString);
     } else {
       printf("%d", tmp->label);
     }
@@ -284,7 +351,7 @@ void listVertices(struct nGraph *G) {
   int count = 0;
   while (tmp != NULL && G->V->count > 0) {
     if (tmp->lblString != NULL && strlen(tmp->lblString) > 0) {
-      printf("(%d) %s", tmp->label, tmp->lblString);
+      printf("%s", tmp->lblString);
     } else {
       printf("%d", tmp->label);
     }
@@ -317,14 +384,20 @@ void listEdges(struct nGraph *G) {
   printf("}\n%s", KWHT);
 }
 
+/**
+ * Sets display type of a graph (graphviz)
+ * @param Graph Object
+ * @param type ["circular", "sfdp", "dot", "neato"]
+ */
+
 void setDisplayType(struct nGraph *G, char *type) {
   if (strcmp(type, "circular") == 0) {
     G->displayType = 2;
   } else if (strcmp(type, "sfdp") == 0) {
     G->displayType = 1;
   } else if (strcmp(type, "dot") == 0) {
-		G->displayType = 3;
-	} else {
+    G->displayType = 3;
+  } else {
     G->displayType = 0;
   }
 }
@@ -346,17 +419,18 @@ void exportTikZ(struct nGraph *G) {
   }
 
   fprintf(fd, "%% Build using LuaLaTeX\n");
-	fprintf(fd, "\\documentclass[]{article}\n");
-	fprintf(fd, "\\usepackage{tikz}\n");
+  fprintf(fd, "\\documentclass[]{article}\n");
+  fprintf(fd, "\\usepackage{tikz}\n");
   fprintf(fd, "\\usetikzlibrary{graphs, graphdrawing}\n");
-	fprintf(fd, "\\usegdlibrary{force, layered, trees}\n");
-	fprintf(fd, "\\begin{document}\n");
+  fprintf(fd, "\\usegdlibrary{force, layered, trees}\n");
+  fprintf(fd, "\\begin{document}\n");
 
-  fprintf(fd, "\\begin{tikzpicture}[>=stealth, every node/.style={circle, draw, minimum size=0.5cm}]\n");
+  fprintf(fd, "\\begin{tikzpicture}[>=stealth, every node/.style={circle, "
+              "draw, minimum size=0.5cm}]\n");
   fprintf(fd, "\\graph [spring layout] {\n");
 
   // Process Nodes First
-	struct vertex *tmpV = G->V->head;
+  struct vertex *tmpV = G->V->head;
   while (tmpV != NULL) {
     fprintf(fd, "  %d", tmpV->label);
     if (tmpV->lblString != NULL && strlen(tmpV->lblString) > 0) {
@@ -386,7 +460,7 @@ void exportTikZ(struct nGraph *G) {
 
   fprintf(fd, "};\n");
   fprintf(fd, "\\end{tikzpicture}\n");
-	fprintf(fd, "\\end{document}\n");
+  fprintf(fd, "\\end{document}\n");
   fclose(fd);
   fprintf(stdout, "TikZ output written to %s\\n", filename);
 }

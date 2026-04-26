@@ -87,107 +87,147 @@ struct nGraph crossProduct(struct nGraph *G1, struct nGraph *G2)
 	return tmp;
 }
 
-struct nGraph gUnionVertex(struct nGraph *ONE, int label)
-{
-	struct nGraph result;
-	nGraphInit(&result, "U");
+struct nGraph gUnionVertex(struct nGraph *ONE, int label) {
+  struct nGraph result;
+  nGraphInit(&result, "U");
 
-	// get all vertices from ONE
-	struct vertex *tmp = ONE->V->head;
-	while(tmp != NULL) {
-		addVertex(&result, tmp->label); 
-		tmp = tmp->next;
-	}
-	if (!searchVertex(&result, label)) {
-		addVertex(&result, label);
-	}
-	return result;
+  // get all vertices from ONE
+  struct vertex *tmp = ONE->V->head;
+  while (tmp != NULL) {
+    addVertex(&result, tmp->label);
+    if (tmp->lblString != NULL) {
+      setVertexLabel(&result, tmp->label, tmp->lblString);
+    }
+    tmp = tmp->next;
+  }
+  if (!searchVertex(&result, label)) {
+    addVertex(&result, label);
+    // Note: the label string for 'label' might not be available here 
+    // unless we pass the original graph G. 
+    // But since this is used in BronKerbosch where we already have R, 
+    // and 'label' is coming from G, we might have a problem.
+  }
+  return result;
 }
 
-struct nGraph gUnion(struct nGraph *ONE, struct nGraph *TWO)
-{
-	struct nGraph result;
-	nGraphInit(&result, "U");
+struct nGraph gUnion(struct nGraph *ONE, struct nGraph *TWO) {
+  struct nGraph result;
+  nGraphInit(&result, "U");
 
-	// get all vertices from ONE
-	struct vertex *tmp = ONE->V->head;
-	while(tmp != NULL) {
-		addVertex(&result, tmp->label);
-		if (tmp->lblString != NULL) {
-			setVertexLabel(&result, tmp->label, tmp->lblString);
-		}
-		tmp = tmp->next;
-	}
-	// get all vertices from TWO and add if not exists
-	tmp = TWO->V->head;
-	while(tmp != NULL) {
-		if (!searchVertex(&result, tmp->label)) {
-			addVertex(&result, tmp->label);
-			if (tmp->lblString != NULL) {
-				setVertexLabel(&result, tmp->label, tmp->lblString);
-			}
-		}
-		tmp = tmp->next;
-	}
+  // get all vertices from ONE
+  struct vertex *tmp = ONE->V->head;
+  while (tmp != NULL) {
+    addVertex(&result, tmp->label);
+    if (tmp->lblString != NULL) {
+      setVertexLabel(&result, tmp->label, tmp->lblString);
+    }
+    tmp = tmp->next;
+  }
+  // get all vertices from TWO and add if not exists
+  tmp = TWO->V->head;
+  while (tmp != NULL) {
+    if (!searchVertex(&result, tmp->label)) {
+      addVertex(&result, tmp->label);
+      if (tmp->lblString != NULL) {
+        setVertexLabel(&result, tmp->label, tmp->lblString);
+      }
+    }
+    tmp = tmp->next;
+  }
 
-	// get all edges from ONE
-	struct edge *tmpe = ONE->E->head;
-	while (tmpe != NULL) {
-		addEdge(&result, tmpe->head, tmpe->tail, tmpe->weight);
-		tmpe = tmpe->next;
-	}
-	// get all edges from two if not exists
-	tmpe = TWO->E->head;
-	while (tmpe != NULL) {
-		if (!edgeExists(&result, tmpe->head, tmpe->tail)) {
-			addEdge(&result, tmpe->head, tmpe->tail, tmpe->weight);
-		}
-		tmpe = tmpe->next;
-	}
+  // get all edges from ONE
+  struct edge *tmpe = ONE->E->head;
+  while (tmpe != NULL) {
+    addEdge(&result, tmpe->head, tmpe->tail, tmpe->weight);
+    tmpe = tmpe->next;
+  }
+  // get all edges from two if not exists
+  tmpe = TWO->E->head;
+  while (tmpe != NULL) {
+    if (!edgeExists(&result, tmpe->head, tmpe->tail)) {
+      addEdge(&result, tmpe->head, tmpe->tail, tmpe->weight);
+    }
+    tmpe = tmpe->next;
+  }
 
-	return result;
+  return result;
 }
 
-struct nGraph gIntersection(struct nGraph *ONE, struct nGraph *TWO)
-{
-	struct nGraph result;
-	nGraphInit(&result, "N");
+struct nGraph gIntersection(struct nGraph *ONE, struct nGraph *TWO) {
+  struct nGraph result;
+  nGraphInit(&result, "N");
 
-	struct vertex *tmp = ONE->V->head;
-	while(tmp != NULL) {
-		if (searchVertex(TWO, tmp->label)) {
-			addVertex(&result, tmp->label);
-		}
-		tmp = tmp->next;		
-	}
-	tmp = TWO->V->head;
-	while(tmp != NULL) {
-		if (searchVertex(ONE, tmp->label)) {
-			if (!searchVertex(&result, tmp->label)) {
-				addVertex(&result, tmp->label);
-			}
-		}
-		tmp = tmp->next;		
-	}
+  struct vertex *tmp = ONE->V->head;
+  while (tmp != NULL) {
+    if (searchVertex(TWO, tmp->label)) {
+      addVertex(&result, tmp->label);
+      if (tmp->lblString != NULL) {
+        setVertexLabel(&result, tmp->label, tmp->lblString);
+      }
+    }
+    tmp = tmp->next;
+  }
+  tmp = TWO->V->head;
+  while (tmp != NULL) {
+    if (searchVertex(ONE, tmp->label)) {
+      if (!searchVertex(&result, tmp->label)) {
+        addVertex(&result, tmp->label);
+        if (tmp->lblString != NULL) {
+          setVertexLabel(&result, tmp->label, tmp->lblString);
+        }
+      }
+    }
+    tmp = tmp->next;
+  }
 
-	struct edge *tmpE = ONE->E->head;
-	while(tmpE != NULL) {
-		if (edgeExists(TWO, tmpE->head, tmpE->tail)) {
-			addEdge(&result, tmpE->head, tmpE->tail, tmpE->weight);
-		}
-		tmpE = tmpE->next;
-	}
-	tmpE = TWO->E->head;
-	while(tmpE != NULL) {
-		if (edgeExists(ONE, tmpE->head, tmpE->tail)) {
-			if (!edgeExists(&result, tmpE->head, tmpE->tail)) {
-				addEdge(&result, tmpE->head, tmpE->tail, tmpE->weight);
-			}
-		}
-		tmpE = tmpE->next;
-	}
+  struct edge *tmpE = ONE->E->head;
+  while (tmpE != NULL) {
+    if (edgeExists(TWO, tmpE->head, tmpE->tail)) {
+      addEdge(&result, tmpE->head, tmpE->tail, tmpE->weight);
+    }
+    tmpE = tmpE->next;
+  }
+  tmpE = TWO->E->head;
+  while (tmpE != NULL) {
+    if (edgeExists(ONE, tmpE->head, tmpE->tail)) {
+      if (!edgeExists(&result, tmpE->head, tmpE->tail)) {
+        addEdge(&result, tmpE->head, tmpE->tail, tmpE->weight);
+      }
+    }
+    tmpE = tmpE->next;
+  }
 
-	return result;
+  return result;
+}
+struct nGraph inducedSubgraph(struct nGraph *G, struct nGraph *V) {
+  struct nGraph result;
+  nGraphInit(&result, "Induced");
+
+  // Add vertices from V and their labels from G
+  struct vertex *v = V->V->head;
+  while (v != NULL) {
+    addVertex(&result, v->label);
+    char *lbl = getVertexLabelString(G, v->label);
+    if (lbl && strcmp(lbl, "not found") != 0) {
+      setVertexLabel(&result, v->label, lbl);
+    }
+    v = v->next;
+  }
+
+  // Add edges from G that connect vertices in V
+  struct edge *e = G->E->head;
+  while (e != NULL) {
+    if (searchVertex(&result, e->head) && searchVertex(&result, e->tail)) {
+      if (e->directed) {
+        addEdgeDirected(&result, e->head, e->tail, e->weight);
+      } else {
+        addEdge(&result, e->head, e->tail, e->weight);
+      }
+    }
+    e = e->next;
+  }
+
+  return result;
 }
 
 struct nGraph gRingSum(struct nGraph *ONE, struct nGraph *TWO)

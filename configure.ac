@@ -37,6 +37,6 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     tests/Makefile
-    examples/llvm_callgraph/Makefile
+    tests_pvt/llvm_callgraph/Makefile
 ])
 AC_OUTPUT
