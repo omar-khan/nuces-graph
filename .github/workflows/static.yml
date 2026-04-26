@@ -42,7 +42,7 @@ jobs:
 
       - name: Disable Jekyll
         # Doxygen uses folders starting with underscores; this is vital
-        run: touch html/.nojekyll
+        run: touch docs/html/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
