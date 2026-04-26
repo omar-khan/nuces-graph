@@ -20,7 +20,9 @@ endif
 
 # Cleanup build artifacts (objects, logs, junk)
 clean-local:
-	rm -rf docs/
+	rm -rf docs/html/*
+	rm -rf docs/*.pdf
+	rm -rf docs/latex
 	rm -f *.log a.out *.dat *.dimac gmon.out
 	rm -f tests/*.log tests/*.dimac tests/*.eps
 	rm -rf lib/
@@ -33,5 +35,4 @@ distclean-local:
 	rm -f aclocal.m4
 	rm -f config.h.in
 	rm -f configure
-	rm *~
 	rm Makefile.in
